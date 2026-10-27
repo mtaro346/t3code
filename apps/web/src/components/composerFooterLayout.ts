@@ -2,6 +2,16 @@ const COMPOSER_FOOTER_COMPACT_BREAKPOINT_PX = 620;
 const COMPOSER_FOOTER_WIDE_ACTIONS_COMPACT_BREAKPOINT_PX = 780;
 const RESTING_COMPOSER_IMAGE_THUMBNAIL_LIMIT = 3;
 
+// Layout experiment. Pick one with localStorage "t3:composerLayout", then reload.
+// "one-row": no scroll collapse. The one-row composer is the default and grows when text wraps,
+// with the controls staying on the right.
+// "grouped": always two rows. Model and effort sit beside attach and send.
+export const COMPOSER_LAYOUT = (() => {
+  const value =
+    typeof localStorage === "undefined" ? null : localStorage.getItem("t3:composerLayout");
+  return value === "one-row" || value === "grouped" ? value : "current";
+})();
+
 export function getRestingComposerImagePreviewCounts(imageCount: number): {
   visibleCount: number;
   overflowCount: number;
@@ -56,7 +66,7 @@ export function resolveComposerTimelineInset(input: {
   isResting: boolean;
 }): number {
   const overlayHeight = Math.ceil(input.overlayHeight);
-  return input.isResting
+  return input.isResting && COMPOSER_LAYOUT === "current"
     ? Math.max(
         input.currentInset,
         overlayHeight + (input.currentInset === 0 ? COMPOSER_RESTING_EXPANSION_MIN_PX : 0),

@@ -139,6 +139,7 @@ import {
   shouldUseCompactComposerPrimaryActions,
   shouldUseCompactComposerFooter,
   shouldUseRestingComposerLayout,
+  COMPOSER_LAYOUT,
 } from "../composerFooterLayout";
 import {
   type ComposerCitationCommentRequest,
@@ -2312,10 +2313,10 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
   const isComposerResting = shouldUseRestingComposerLayout({
     isExistingThread: routeKind === "server" && activeThreadId !== null,
     isMobileViewport,
-    isScrollCollapsed: isComposerScrollCollapsed,
+    isScrollCollapsed: COMPOSER_LAYOUT === "one-row" || isComposerScrollCollapsed,
     hasExpandedChrome: composerHasExpandedChrome,
     hasMultilinePrompt,
-    timelineOverflows,
+    timelineOverflows: COMPOSER_LAYOUT === "one-row" || timelineOverflows,
   });
   const expandedComposerImages = isComposerResting
     ? standaloneComposerImages.filter((image) => pendingSnapShotIdSet.has(image.id))
@@ -2374,6 +2375,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     routeKind === "server" && activeThreadId !== null && !isMobileViewport;
   const canScrollCollapseComposer =
     canTrackComposerScrollGesture &&
+    COMPOSER_LAYOUT === "current" &&
     settings.composerCollapseOnScroll &&
     !hasMultilinePrompt &&
     !composerHasExpandedChrome;
@@ -3529,6 +3531,11 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                 };
               }}
               data-chat-composer-body="true"
+              data-inline-reserve={
+                COMPOSER_LAYOUT === "one-row" && restingActionsWidth !== null
+                  ? restingActionsWidth + 16
+                  : undefined
+              }
               className={cn(
                 "relative px-3 pb-2 sm:px-4",
                 "pt-3.5 sm:pt-4",
@@ -3736,7 +3743,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                     isComposerResting && "hidden",
                   )}
                 >
-                  {composerControlsCollapsed ? null : composerControls}
+                  {composerControlsCollapsed || COMPOSER_LAYOUT !== "current"
+                    ? null
+                    : composerControls}
                 </div>
 
                 <div
@@ -3755,6 +3764,16 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                       // Width gives way in order: secondary trait text, then the model (label
                       // truncates, provider icon drops). Effort and permissions never clip.
                       className="flex min-w-0 items-center gap-0.5 [&_button]:text-xs! @max-[600px]/composer-surface:[&_[data-composer-secondary-trait]]:hidden [&_[data-chat-provider-model-picker-label]]:max-w-24 @max-[520px]/composer-surface:[&_[data-chat-provider-model-picker-label]]:max-w-14 @max-[520px]/composer-surface:[&_[data-chat-provider-model-picker-icon]]:hidden @max-[520px]/composer-surface:[&_[data-chat-provider-model-picker]]:min-w-0"
+                    >
+                      {composerControls}
+                    </div>
+                  ) : COMPOSER_LAYOUT !== "current" && !composerControlsCollapsed ? (
+                    // One-row keeps its small controls when it grows, so nothing jumps.
+                    <div
+                      className={cn(
+                        "flex min-w-0 items-center gap-0.5",
+                        COMPOSER_LAYOUT === "one-row" && "[&_button]:text-xs!",
+                      )}
                     >
                       {composerControls}
                     </div>
