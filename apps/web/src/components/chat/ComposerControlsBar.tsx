@@ -28,6 +28,7 @@ import {
 } from "./composerProviderState";
 import type { useComposerProviderModel } from "./useComposerProviderModel";
 import { resolveComposerControlsOwnership } from "./composerControlsOwnership";
+import { COMPOSER_GROUP_STYLE, COMPOSER_LAYOUT } from "../composerFooterLayout";
 
 /**
  * The composer footer controls: model picker, traits, mode controls and the overflow menu for
@@ -192,7 +193,7 @@ export function ComposerControlsBar(props: {
     matchesDefault: accessMatchesDefault,
     hasTraits: providerTraitsPicker !== null,
     planModeUiEnabled,
-    collapsed: composerControlsCollapsed,
+    collapsed: composerControlsCollapsed || COMPOSER_GROUP_STYLE === "right-icons",
     measuredHiddenBlockCount,
   });
   const restingProviderTraitsPicker = renderProviderTraitsPicker({
@@ -264,7 +265,11 @@ export function ComposerControlsBar(props: {
       size={composerControlsCollapsed ? "xs" : "sm"}
       triggerClassName={cn(
         "pe-1",
-        composerControlsCollapsed ? "min-w-13 shrink text-xs!" : "-ms-2 min-w-13",
+        composerControlsCollapsed
+          ? "min-w-13 shrink text-xs!"
+          : COMPOSER_LAYOUT === "current"
+            ? "-ms-2 min-w-13"
+            : "min-w-13",
       )}
       terminalOpen={terminalOpen}
       open={modelPickerOpen}

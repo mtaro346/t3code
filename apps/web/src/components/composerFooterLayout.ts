@@ -12,6 +12,16 @@ export const COMPOSER_LAYOUT = (() => {
   return value === "one-row" || value === "grouped" ? value : "current";
 })();
 
+const GROUP_STYLES = ["left", "right", "right-mono", "right-icons", "no-logo"] as const;
+// Grouped renditions, from localStorage "t3:composerGroup". Default "right".
+// left: logo before the label. right: logo after it. right-mono: grey logo.
+// right-icons: grey logo, muted label, icon-only permissions. no-logo: label only.
+export const COMPOSER_GROUP_STYLE = (() => {
+  const value =
+    typeof localStorage === "undefined" ? null : localStorage.getItem("t3:composerGroup");
+  return GROUP_STYLES.find((style) => style === value) ?? "right";
+})();
+
 export function getRestingComposerImagePreviewCounts(imageCount: number): {
   visibleCount: number;
   overflowCount: number;

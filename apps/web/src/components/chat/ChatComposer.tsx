@@ -140,6 +140,7 @@ import {
   shouldUseCompactComposerFooter,
   shouldUseRestingComposerLayout,
   COMPOSER_LAYOUT,
+  COMPOSER_GROUP_STYLE,
 } from "../composerFooterLayout";
 import {
   type ComposerCitationCommentRequest,
@@ -3770,9 +3771,19 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                   ) : COMPOSER_LAYOUT !== "current" && !composerControlsCollapsed ? (
                     // One-row keeps its small controls when it grows, so nothing jumps.
                     <div
+                      data-group-style={COMPOSER_GROUP_STYLE}
                       className={cn(
                         "flex min-w-0 items-center gap-0.5",
                         COMPOSER_LAYOUT === "one-row" && "[&_button]:text-xs!",
+                        COMPOSER_GROUP_STYLE !== "left" &&
+                          "[&_[data-chat-provider-model-picker-icon]>*]:order-last",
+                        (COMPOSER_GROUP_STYLE === "right-mono" ||
+                          COMPOSER_GROUP_STYLE === "right-icons") &&
+                          "[&_[data-chat-provider-model-picker-icon]>*]:opacity-70 [&_[data-chat-provider-model-picker-icon]>*]:grayscale",
+                        COMPOSER_GROUP_STYLE === "right-icons" &&
+                          "[&_[data-chat-provider-model-picker-label]]:text-muted-foreground",
+                        COMPOSER_GROUP_STYLE === "no-logo" &&
+                          "[&_[data-chat-provider-model-picker-icon]]:hidden",
                       )}
                     >
                       {composerControls}
