@@ -1,0 +1,104 @@
+# Japanese fork release: a `vX.Y.Z-ja` tag builds the unsigned macOS arm64 app "T3 Code JA" and publishes it.
+# Mirrors apps/web/vite/ja/release.sh (which stays as the local fallback on a Mac).
+# Squirrel.Mac cannot apply updates to unsigned apps, so the build ships without an update feed.
+name: Release (ja)
+
+on:
+  push:
+    tags:
+      - "v*.*.*-ja"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing vX.Y.Z-ja tag to rebuild"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ja-release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository != 'pingdotgg/t3code'
+    runs-on: macos-latest
+    timeout-minutes: 120
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Resolve version
+        id: version
+        run: |
+          version="${TAG#v}"
+          version="${version%-ja}"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Unexpected tag: $TAG" >&2; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb # v1
+        with:
+          node-version-file: package.json
+          cache: true
+          run-install: false
+
+      - name: Setup Rust
+        run: |
+          rustup toolchain install stable --profile minimal --target aarch64-apple-darwin
+          rustup default stable
+
+      - name: Install dependencies
+        run: vp install
+
+      - name: Check translations
+        run: |
+          node apps/web/vite/ja/translate.check.ts
+          missing="$(node apps/web/vite/ja/extract.ts)"
+          if [[ "$missing" != "[]" ]]; then
+            echo "::warning::Untranslated UI text ships in English: $missing"
+          fi
+
+      # Rename the app so it installs beside the official one; fail if upstream moved these lines.
+      - name: Rebrand as T3 Code JA
+        run: |
+          rebrand() {
+            grep -qF "$2" "$1" || { echo "rebrand: $2 not found in $1" >&2; exit 1; }
+            FROM="$2" TO="$3" perl -pi -e 's/\Q$ENV{FROM}\E/$ENV{TO}/' "$1"
+          }
+          rebrand apps/desktop/package.json '"productName": "T3 Code (Beta)"' '"productName": "T3 Code JA"'
+          rebrand scripts/build-desktop-artifact.ts 'DESKTOP_APP_ID = "com.t3tools.t3code";' 'DESKTOP_APP_ID = "com.t3tools.t3code.ja";'
+
+      - name: Align package versions
+        run: node scripts/update-release-package-versions.ts "${{ steps.version.outputs.version }}"
+
+      - name: Build macOS app
+        run: |
+          env -u GITHUB_REPOSITORY -u T3CODE_DESKTOP_UPDATE_REPOSITORY \
+          node scripts/build-desktop-artifact.ts \
+            --platform mac --target dmg --arch arm64 \
+            --build-version "${{ steps.version.outputs.version }}" \
+            --output-dir release
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          shopt -s nullglob
+          dmgs=(release/*.dmg)
+          (( ${#dmgs[@]} == 1 )) || { echo "Expected one dmg, found ${#dmgs[@]}" >&2; ls -la release; exit 1; }
+          dmg="release/T3-Code-JA-$VERSION-arm64.dmg"
+          [[ "${dmgs[0]}" == "$dmg" ]] || mv "${dmgs[0]}" "$dmg"
+          notes="公式 [v$VERSION](https://github.com/pingdotgg/t3code/releases/tag/v$VERSION) の日本語版「T3 Code JA」です。公式版と設定・プロジェクト・スレッドを共有します（同時には起動できないので、切り替えるときはもう片方を終了してください）。署名していないため、初回は Finder でアプリを右クリックして「開く」を選んでください。アプリ内の自動更新は使えないので、新しい版はこのページから dmg をダウンロードしてください。"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$dmg" --clobber
+          else
+            gh release create "$TAG" "$dmg" --verify-tag --title "T3 Code JA $VERSION" --notes "$notes" --latest
+          fi

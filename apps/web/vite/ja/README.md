@@ -3,9 +3,10 @@
 公式 [pingdotgg/t3code](https://github.com/pingdotgg/t3code) の UI を日本語にした fork です。
 元のコードは変更しません。`plugin.ts` がビルド時に `ja.json`（英語 → 日本語）で UI 文言を置き換えます。
 公式との差分は、このディレクトリ、`apps/web/vite.config.ts` の登録 2 行、`CLAUDE.md` の 1 行、
-だけです。アプリ名「T3 Code JA」とバンドル ID `com.t3tools.t3code.ja` は、`release.sh` がビルド直前に
-VM 内のコピーだけ書き換えます（`apps/desktop/package.json` の `productName` と `scripts/build-desktop-artifact.ts` の
-`DESKTOP_APP_ID`。公式側でその行が変わったらビルドが止まるので、`release.sh` の置き換え元を合わせる）。
+`.github/workflows/ja-release.yml` だけです。アプリ名「T3 Code JA」とバンドル ID `com.t3tools.t3code.ja` は、
+リリースのビルド直前にビルド環境のコピーだけ書き換えます（`apps/desktop/package.json` の `productName` と
+`scripts/build-desktop-artifact.ts` の `DESKTOP_APP_ID`。公式側でその行が変わったらビルドが止まるので、
+`ja-release.yml` と `release.sh` の置き換え元を合わせる）。
 
 T3 Code JA は公式版と同じ設定フォルダ（`~/Library/Application Support/t3code-v2`）と T3 home（`~/.t3`）を使うので、
 設定・プロジェクト・スレッドを共有します。同時には起動できません（後から開いた方はすぐ終了し、先に開いていた方が前に出ます）。
@@ -19,9 +20,11 @@ T3 Code JA は公式版と同じ設定フォルダ（`~/Library/Application Supp
 3. `node apps/web/vite/ja/extract.ts` で未訳を出し、下のルールで `ja.json` に追加する（キー順を保つ）
 4. `node apps/web/vite/ja/translate.check.ts` と `vp run typecheck`（apps/web）と `vp build`（apps/web）を通す
 5. `git push origin ja` → `git tag -a vX.Y.Z-ja && git push origin vX.Y.Z-ja`
-6. Mac で `apps/web/vite/ja/release.sh vX.Y.Z-ja` を実行する。VMPal のビルド用 VM の使い捨てクローンで arm64 の dmg をビルドし、fork の Releases に公開する。`DRY_RUN=1` を付けるとビルドだけ行う
+6. タグの push で GitHub Actions の `Release (ja)`（`.github/workflows/ja-release.yml`）が macOS ランナーで arm64 の dmg をビルドし、fork の Releases に公開する。作り直すときは Actions 画面からタグを指定して手動実行する
 
-## ビルド用 VM
+Actions が使えないときは、Mac で `apps/web/vite/ja/release.sh vX.Y.Z-ja` を実行する。VMPal のビルド用 VM の使い捨てクローンで arm64 の dmg をビルドし、fork の Releases に公開する。`DRY_RUN=1` を付けるとビルドだけ行う
+
+## ビルド用 VM（release.sh を使うとき）
 
 `release.sh` は、停止中の macOS VM「T3 Code ja build」を `vmpal run` で複製してビルドし、終わったら複製を消します。
 作り直すときは、VMPal で macOS VM を作り、その中に次のものを入れて停止しておきます。
