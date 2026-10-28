@@ -653,6 +653,9 @@ export const TraitsPicker = memo(function TraitsPicker({
                     // Effort reads on from the model name, "Opus 5.5 High", at about the space
                     // inside the name: this cancels the model chip's end padding and the row gap.
                     isComposerOwned && (effortWord !== null ? "-ms-1 ps-0" : "-ms-1 ps-0.5"),
+                    // The word is muted next to the model name and brightens like it on hover.
+                    effortWord !== null &&
+                      "text-muted-foreground hover:text-foreground data-pressed:text-foreground data-popup-open:text-foreground",
                   )}
                 />
               }
@@ -666,9 +669,7 @@ export const TraitsPicker = memo(function TraitsPicker({
               ) : null}
               {effortWord !== null ? (
                 <>
-                  <span data-composer-control-label className="text-muted-foreground">
-                    {effortWord}
-                  </span>
+                  <span data-composer-control-label>{effortWord}</span>
                   {/* Icon-only footers hide labels and reveal this instead. */}
                   <GaugeIcon
                     aria-hidden="true"
