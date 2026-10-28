@@ -2,7 +2,7 @@
 
 公式 [pingdotgg/t3code](https://github.com/pingdotgg/t3code) の UI を日本語にした fork です。
 元のコードは変更しません。`plugin.ts` がビルド時に `ja.json`（英語 → 日本語）で UI 文言を置き換えます。
-公式との差分は、このディレクトリ、`apps/web/vite.config.ts` の登録 2 行、`.github/workflows/ja-release.yml`、`CLAUDE.md` の 1 行だけです。
+公式との差分は、このディレクトリ、`apps/web/vite.config.ts` の登録 2 行、`CLAUDE.md` の 1 行だけです。
 
 ## 公式リリースへの追従
 
@@ -12,7 +12,8 @@
 2. コンフリクトは `vite.config.ts` の `japanesePlugin()` 登録だけのはず。公式側を採用してから登録を戻す
 3. `node apps/web/vite/ja/extract.ts` で未訳を出し、下のルールで `ja.json` に追加する（キー順を保つ）
 4. `node apps/web/vite/ja/translate.check.ts` と `vp run typecheck`（apps/web）と `vp build`（apps/web）を通す
-5. `git push origin ja` → `git tag vX.Y.Z-ja && git push origin vX.Y.Z-ja`。タグで `Release (ja)` が dmg を作って公開する
+5. `git push origin ja` → `git tag -a vX.Y.Z-ja && git push origin vX.Y.Z-ja`
+6. Mac で `apps/web/vite/ja/release.sh vX.Y.Z-ja` を実行する。一時 worktree で arm64 の dmg をビルドし、fork の Releases に公開する（ビルドは GitHub Actions を使わずローカルで行う）
 
 配布する dmg は署名していないため、アプリ内の自動更新は無効にしてあります（Squirrel.Mac は署名のないアプリを更新できない）。利用者は Releases から新しい dmg を入れ直します。
 
