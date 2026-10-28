@@ -2,14 +2,10 @@ import type { ProviderOptionDescriptor } from "@t3tools/contracts";
 
 import type { ComposerControlSize } from "./ComposerControl";
 
-// Experiment: localStorage "t3:glyph" = "<height>" or "<height>:<lift>", for example "12:1".
-const [GLYPH_EXPERIMENT_HEIGHT, GLYPH_EXPERIMENT_LIFT] = (
-  (typeof localStorage === "undefined" ? null : localStorage.getItem("t3:glyph")) ?? ""
-)
-  .split(":")
-  .map(Number);
-const GLYPH_HEIGHT_SM = GLYPH_EXPERIMENT_HEIGHT || 14;
+const GLYPH_HEIGHT_SM = 14;
 const GLYPH_HEIGHT_XS = 12;
+// Bars stop this far above the box's bottom, which puts their flat base on the text baseline.
+const BASELINE_INSET = 2;
 
 type SelectDescriptor = Extract<ProviderOptionDescriptor, { type: "select" }>;
 
@@ -42,13 +38,15 @@ export function resolveEffortGlyph(descriptor: SelectDescriptor, current: string
 
 /**
  * Rising bars on whole pixels so they stay sharp on 1x displays. Color follows the text.
- * The shortest bar is half height, so low levels still read at the size of the label's text.
+ * The box is centered like the icons beside it; the bars sit on the text baseline inside it.
+ * The shortest bar is half the tallest, so low levels still read.
  */
 export function EffortGlyph(props: { count: number; filled: number; size?: ComposerControlSize }) {
   const height = props.size === "xs" ? GLYPH_HEIGHT_XS : GLYPH_HEIGHT_SM;
   const step = 4;
   const width = step * props.count - 2;
-  const minBar = Math.round(height / 2);
+  const maxBar = height - BASELINE_INSET;
+  const minBar = Math.round(maxBar / 2);
   return (
     <svg
       aria-hidden="true"
@@ -56,26 +54,19 @@ export function EffortGlyph(props: { count: number; filled: number; size?: Compo
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       // Inline size: the composer control CSS forces unsized SVGs to 16px.
-      style={{
-        width,
-        height,
-        ...(props.size !== "xs" && GLYPH_EXPERIMENT_LIFT
-          ? { transform: `translateY(-${GLYPH_EXPERIMENT_LIFT}px)` }
-          : {}),
-      }}
-      // Centered like the icons beside it, so its flat bottom lines up with theirs.
+      style={{ width, height }}
       className="shrink-0 text-current"
       data-composer-effort-glyph
     >
       {Array.from({ length: props.count }, (_, index) => {
         const barHeight = Math.round(
-          minBar + ((height - minBar) * index) / Math.max(props.count - 1, 1),
+          minBar + ((maxBar - minBar) * index) / Math.max(props.count - 1, 1),
         );
         return (
           <rect
             key={index}
             x={index * step}
-            y={height - barHeight}
+            y={maxBar - barHeight}
             width={2}
             height={barHeight}
             fill="currentColor"

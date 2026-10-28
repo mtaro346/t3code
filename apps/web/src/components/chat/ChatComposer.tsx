@@ -3787,9 +3787,13 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                       )}
                     >
                       {composerControls}
+                      {/* Same gap as the controls, so the icons keep one rhythm. */}
+                      {composerAttachButton}
                     </div>
                   ) : null}
-                  {composerAttachButton}
+                  {COMPOSER_LAYOUT !== "current" && !composerControlsCollapsed
+                    ? null
+                    : composerAttachButton}
                   <ComposerFooterPrimaryActions
                     compact={isComposerResting || isComposerPrimaryActionsCompact}
                     canOperateThread={canOperateThread}
