@@ -54,6 +54,8 @@ export function ComposerControlsBar(props: {
   planModeEnabled: boolean;
   planModeUiEnabled: boolean;
   effortDisplay: EffortDisplay;
+  /** The strip under a new thread names the permissions, so the row does not repeat them. */
+  permissionsShownInStrip: boolean;
   interactionMode: ProviderInteractionMode;
   compatibleRuntimeMode: RuntimeMode;
   defaultRuntimeMode: RuntimeMode | undefined;
@@ -149,6 +151,7 @@ export function ComposerControlsBar(props: {
     planModeEnabled,
   });
   const accessMatchesDefault = compatibleRuntimeMode === defaultRuntimeMode;
+  const permissionsChipHidden = accessMatchesDefault || props.permissionsShownInStrip;
   const providerTraitsPickerInput = {
     provider: selectedProvider,
     instanceId: selectedInstanceId,
@@ -172,7 +175,7 @@ export function ComposerControlsBar(props: {
         onRuntimeModeChange={handleRuntimeModeChange}
       />
     ),
-    ...(accessMatchesDefault
+    ...(permissionsChipHidden
       ? {
           extraMenuHint: [
             `Permissions: ${
@@ -196,7 +199,7 @@ export function ComposerControlsBar(props: {
     effortOwnsModeShortcut,
     overflowShowsPermissions,
   } = resolveComposerControlsOwnership({
-    matchesDefault: accessMatchesDefault,
+    matchesDefault: permissionsChipHidden,
     hasTraits: providerTraitsPicker !== null,
     planModeUiEnabled,
     collapsed: composerControlsCollapsed,

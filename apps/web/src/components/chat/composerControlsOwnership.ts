@@ -4,7 +4,7 @@
  * The rule: Permissions have exactly one visible home and composer.mode exactly one target.
  */
 export function resolveComposerControlsOwnership(input: {
-  /** Permissions hide while the thread's mode equals the user's default. */
+  /** Permissions hide while the mode is the default, or while the new-thread strip names it. */
   readonly matchesDefault: boolean;
   /** The model has an effort (traits) menu, which then always holds Permissions. */
   readonly hasTraits: boolean;
