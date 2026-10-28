@@ -7,6 +7,7 @@ import {
   type ScopedThreadRef,
   type ServerProviderModel,
 } from "@t3tools/contracts";
+import type { EffortDisplay } from "@t3tools/contracts/settings";
 import {
   buildExplicitProviderOptionSelectionsFromDescriptors,
   getProviderOptionCurrentValue,
@@ -63,6 +64,7 @@ type TraitsRenderInput = {
   hidden?: boolean;
   triggerClassName?: string;
   isComposerOwned?: boolean;
+  effortDisplay?: EffortDisplay;
   extraMenuContent?: ReactNode;
   extraMenuOwnsModeShortcut?: boolean;
   extraMenuHint?: string;
@@ -235,6 +237,7 @@ function renderTraitsControl(
     hidden,
     triggerClassName,
     isComposerOwned,
+    effortDisplay,
     extraMenuContent,
     extraMenuOwnsModeShortcut,
     extraMenuHint,
@@ -277,6 +280,7 @@ function renderTraitsControl(
       {...(hidden !== undefined ? { hidden } : {})}
       {...(triggerClassName !== undefined ? { triggerClassName } : {})}
       {...(isComposerOwned ? { isComposerOwned } : {})}
+      {...(effortDisplay ? { effortDisplay } : {})}
       {...(extraMenuContent ? { extraMenuContent } : {})}
       {...(extraMenuOwnsModeShortcut ? { extraMenuOwnsModeShortcut } : {})}
       {...(extraMenuHint ? { extraMenuHint } : {})}

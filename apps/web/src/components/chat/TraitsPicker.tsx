@@ -16,6 +16,7 @@ import {
   type ScopedThreadRef,
   type ServerProviderModel,
 } from "@t3tools/contracts";
+import type { EffortDisplay } from "@t3tools/contracts/settings";
 import {
   buildProviderOptionSelectionsFromDescriptors,
   getProviderOptionCurrentLabel,
@@ -24,7 +25,7 @@ import {
   normalizeModelSlug,
 } from "@t3tools/shared/model";
 import { memo, type ReactNode, useRef } from "react";
-import { GaugeIcon, ZapIcon } from "lucide-react";
+import { FlameIcon, GaugeIcon, ZapIcon } from "lucide-react";
 import {
   Menu,
   MenuGroup,
@@ -318,6 +319,8 @@ export interface TraitsMenuContentProps {
   planModeEnabled: boolean;
   triggerClassName?: string;
   isComposerOwned?: boolean;
+  /** Composer chips draw effort as bars unless the user picked the word. */
+  effortDisplay?: EffortDisplay;
   /** Extra section shown below the traits in the picker popup (Permissions). */
   extraMenuContent?: ReactNode;
   /** This trigger also answers composer.mode (while the permissions chip is hidden). */
@@ -521,6 +524,7 @@ export const TraitsPicker = memo(function TraitsPicker({
   planModeEnabled,
   triggerClassName,
   isComposerOwned,
+  effortDisplay = "bars",
   extraMenuContent,
   extraMenuOwnsModeShortcut,
   extraMenuHint,
@@ -593,6 +597,10 @@ export const TraitsPicker = memo(function TraitsPicker({
               ),
         )
       : null;
+  // Workflow levels such as Ultracode always show their name; the setting names every level.
+  const effortWord = effortGlyph
+    ? (effortGlyph.special ?? (effortDisplay === "label" ? triggerLabel : null))
+    : null;
 
   return (
     <Menu
@@ -632,12 +640,20 @@ export const TraitsPicker = memo(function TraitsPicker({
         >
           {effortGlyph ? (
             <span className="flex items-center gap-1.5">
-              {effortGlyph.special ? null : (
+              {effortWord === null ? (
                 <EffortGlyph count={effortGlyph.count} filled={effortGlyph.filled} size={size} />
-              )}
-              {effortGlyph.special ? (
+              ) : null}
+              {effortWord !== null ? (
                 <>
-                  <span data-composer-control-label>{effortGlyph.special}</span>
+                  {effortGlyph.maxed ? (
+                    <FlameIcon aria-hidden="true" className="size-3.5 shrink-0 text-warning" />
+                  ) : null}
+                  <span
+                    data-composer-control-label
+                    className={effortGlyph.maxed ? "text-warning" : undefined}
+                  >
+                    {effortWord}
+                  </span>
                   {/* Icon-only footers hide labels and reveal this instead. */}
                   <GaugeIcon
                     aria-hidden="true"

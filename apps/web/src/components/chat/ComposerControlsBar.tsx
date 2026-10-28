@@ -20,6 +20,7 @@ import {
   type RuntimeMode,
   type ServerProvider,
 } from "@t3tools/contracts";
+import type { EffortDisplay } from "@t3tools/contracts/settings";
 import { cn } from "~/lib/utils";
 import { shortcutLabelForCommand } from "../../keybindings";
 import {
@@ -48,6 +49,7 @@ export function ComposerControlsBar(props: {
   onPromptEdit: (edit: (prompt: string) => string) => void;
   planModeEnabled: boolean;
   planModeUiEnabled: boolean;
+  effortDisplay: EffortDisplay;
   interactionMode: ProviderInteractionMode;
   compatibleRuntimeMode: RuntimeMode;
   defaultRuntimeMode: RuntimeMode | undefined;
@@ -156,6 +158,7 @@ export function ComposerControlsBar(props: {
     onPromptEdit,
     planModeEnabled,
     isComposerOwned: true,
+    effortDisplay: props.effortDisplay,
     triggerClassName: "ps-1.5 pe-1",
     // Permissions always live in the effort menu, so the section never unmounts while open.
     extraMenuContent: (
