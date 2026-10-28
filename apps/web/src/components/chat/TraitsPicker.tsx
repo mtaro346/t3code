@@ -515,8 +515,8 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
 function FastBolt(props: { ultra: boolean }) {
   if (!props.ultra) return <ZapIcon aria-hidden="true" className="size-3 shrink-0 fill-current" />;
   return (
-    <span aria-hidden="true" className="relative h-3 w-4.5 shrink-0">
-      <ZapIcon className="absolute top-0 left-1.5 size-3 fill-current" />
+    <span aria-hidden="true" className="relative h-3 w-3.75 shrink-0">
+      <ZapIcon className="absolute top-0 left-0.75 size-3 fill-current" />
       <ZapIcon
         strokeWidth={4}
         className="absolute top-0 left-0 size-3 fill-current stroke-(--chat-composer-glass-surface) [paint-order:stroke]"
