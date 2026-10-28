@@ -1,3 +1,4 @@
+import { useTranslate } from "~/i18n";
 import { useComposerTypingGuard } from "./useComposerTypingGuard";
 import { insertAttachmentReferencesForDraft } from "./composerAttachmentReferences";
 import { DESKTOP_PASTE_AS_TEXT_EVENT } from "../../lib/desktopPasteAsText";
@@ -520,6 +521,7 @@ const NO_PROVIDER_SKILLS: ServerProvider["skills"] = [];
 const NO_PROVIDER_SLASH_COMMANDS: ServerProvider["slashCommands"] = [];
 
 export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps) {
+  const t = useTranslate();
   const {
     composerDraftTarget,
     environmentId,
@@ -3542,10 +3544,12 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                   )}
                   onPointerDown={(event) => event.preventDefault()}
                   onClick={expandMobileComposerStable}
-                  aria-label="Expand composer"
+                  aria-label={t("Expand composer", "入力欄を開く")}
                 >
                   {prompt.trim() ||
-                    (showProviderUnavailable ? "Enable a provider in Settings" : "Ask anything...")}
+                    (showProviderUnavailable
+                      ? t("Enable a provider in Settings", "設定でプロバイダーを有効にしてください")
+                      : t("Ask anything...", "なんでも聞いてください..."))}
                 </button>
                 {collapsedComposerImagePreviews}
                 <button
@@ -3716,19 +3720,37 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                     placeholder={
                       isComposerApprovalState
                         ? activePendingApproval?.supportsFeedback
-                          ? "Send feedback to decline this request"
-                          : "Send a message to decline and redirect the agent"
+                          ? t(
+                              "Send feedback to decline this request",
+                              "フィードバックを送ってリクエストを拒否",
+                            )
+                          : t(
+                              "Send a message to decline and redirect the agent",
+                              "メッセージを送って拒否し、エージェントに別の指示を出す",
+                            )
                         : activePendingProgress
                           ? isChoiceOnlyPendingQuestion
-                            ? "Choose an option above"
-                            : "Type your own answer, or leave this blank to use the selected option"
+                            ? t("Choose an option above", "上の選択肢を選んでください")
+                            : t(
+                                "Type your own answer, or leave this blank to use the selected option",
+                                "回答を入力するか、選択した項目を使う場合は空欄のままにしてください",
+                              )
                           : showPlanFollowUpPrompt && activeProposedPlan
-                            ? "Add feedback to refine the plan, or leave this blank to implement it"
+                            ? t(
+                                "Add feedback to refine the plan, or leave this blank to implement it",
+                                "計画へのフィードバックを入力するか、実行する場合は空欄のままにしてください",
+                              )
                             : projectSelectionRequired
-                              ? "Choose a project above to start a thread"
+                              ? t(
+                                  "Choose a project above to start a thread",
+                                  "スレッドを始めるには上のプロジェクトを選んでください",
+                                )
                               : showProviderUnavailable
-                                ? "Enable a provider in Settings to send a message"
-                                : DEFAULT_COMPOSER_PLACEHOLDER
+                                ? t(
+                                    "Enable a provider in Settings to send a message",
+                                    "メッセージを送るには設定でプロバイダーを有効にしてください",
+                                  )
+                                : t(DEFAULT_COMPOSER_PLACEHOLDER, "なんでも聞いてください...")
                     }
                     disabled={
                       projectSelectionRequired ||

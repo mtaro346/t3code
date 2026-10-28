@@ -1,3 +1,4 @@
+import { useTranslate } from "../../lib/i18n";
 import { Keyboard, Pressable, View } from "react-native";
 
 import { SymbolView } from "../../components/ui/AppSymbol";
@@ -7,6 +8,7 @@ import { WORKSPACE_DOCK } from "./workspace-tabs-state";
 import { PullRequestGlyph } from "../pull-requests/pullRequestGlyphs";
 
 export function WorkspaceDock(props: { readonly onNewTask: () => void }) {
+  const t = useTranslate();
   const workspace = useWorkspaceTabs()!;
   return (
     <View
@@ -27,7 +29,11 @@ export function WorkspaceDock(props: { readonly onNewTask: () => void }) {
               <Pressable
                 key={tab}
                 accessibilityRole="tab"
-                accessibilityLabel={tab === "threads" ? "Threads" : "Pull requests"}
+                accessibilityLabel={
+                  tab === "threads"
+                    ? t("Threads", "スレッド")
+                    : t("Pull requests", "プルリクエスト")
+                }
                 accessibilityState={{ selected }}
                 onPress={() => {
                   if (selected) return;
@@ -59,7 +65,7 @@ export function WorkspaceDock(props: { readonly onNewTask: () => void }) {
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="New chat"
+          accessibilityLabel={t("New chat", "新しいチャット")}
           onPress={props.onNewTask}
           className="flex-1 items-center justify-center"
         >

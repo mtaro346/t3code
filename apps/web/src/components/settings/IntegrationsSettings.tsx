@@ -1,3 +1,4 @@
+import { useTranslate } from "../../i18n";
 import { DeviceHostUpdates } from "../device/DeviceHostUpdates";
 import { DeviceToolVersions } from "../device/DeviceToolVersions";
 import { useScopedSettings, useUpdateScopedSettings } from "./useScopedSettings";
@@ -305,6 +306,7 @@ const rotateViewport = (
 });
 
 function BrowserViewportSetting({ disabled }: { readonly disabled: boolean }) {
+  const t = useTranslate();
   const viewport = useClientSettings((settings) => settings.browserDefaultViewport);
   const updateSettings = useUpdatePrimarySettings();
 
@@ -353,7 +355,11 @@ function BrowserViewportSetting({ disabled }: { readonly disabled: boolean }) {
   return (
     <SettingsRow
       {...searchableSetting("browser-default-viewport")}
-      description="Tab size for you and agents. Fill fits the panel; other sizes show the device toolbar."
+      title={t("Default browser viewport", "ブラウザの標準表示サイズ")}
+      description={t(
+        "Tab size for you and agents. Fill fits the panel; other sizes show the device toolbar.",
+        "ユーザーとエージェントが使うタブのサイズです。「パネルに合わせる」以外ではデバイスツールバーが表示されます。",
+      )}
       resetAction={
         !disabled && viewport._tag !== DEFAULT_BROWSER_VIEWPORT._tag ? (
           <SettingResetButton
@@ -455,13 +461,18 @@ function BrowserViewportSetting({ disabled }: { readonly disabled: boolean }) {
 }
 
 function BrowserZoomSetting({ disabled }: { readonly disabled: boolean }) {
+  const t = useTranslate();
   const zoomFactor = useClientSettings((settings) => settings.browserDefaultZoomFactor);
   const updateSettings = useUpdatePrimarySettings();
 
   return (
     <SettingsRow
       {...searchableSetting("browser-default-zoom")}
-      description="Page zoom applied to new browser tabs."
+      title={t("Default browser zoom", "ブラウザの標準ズーム")}
+      description={t(
+        "Page zoom applied to new browser tabs.",
+        "新しいブラウザタブに適用するページのズーム率です。",
+      )}
       resetAction={
         !disabled && zoomFactor !== DEFAULT_PREVIEW_ZOOM_FACTOR ? (
           <SettingResetButton
@@ -498,13 +509,18 @@ function BrowserZoomSetting({ disabled }: { readonly disabled: boolean }) {
 }
 
 function BrowserAppearanceSetting({ disabled }: { readonly disabled: boolean }) {
+  const t = useTranslate();
   const appearance = useClientSettings((settings) => settings.browserDefaultAppearance);
   const updateSettings = useUpdatePrimarySettings();
 
   return (
     <SettingsRow
       {...searchableSetting("browser-default-appearance")}
-      description="The color scheme pages are told to prefer. System follows your OS setting."
+      title={t("Default browser appearance", "ブラウザの標準外観")}
+      description={t(
+        "The color scheme pages are told to prefer. System follows your OS setting.",
+        "ページに通知する配色設定です。「システム」は OS の設定に従います。",
+      )}
       resetAction={
         !disabled && appearance !== DEFAULT_PREVIEW_APPEARANCE ? (
           <SettingResetButton
@@ -544,6 +560,7 @@ function BrowserAppearanceSetting({ disabled }: { readonly disabled: boolean }) 
 }
 
 function BrowserRecordingInputSettings({ disabled }: { readonly disabled: boolean }) {
+  const t = useTranslate();
   const showKeys = useClientSettings((settings) => settings.browserRecordingShowKeyPresses);
   const showMouse = useClientSettings((settings) => settings.browserRecordingShowMousePresses);
   const updateSettings = useUpdatePrimarySettings();
@@ -551,7 +568,11 @@ function BrowserRecordingInputSettings({ disabled }: { readonly disabled: boolea
     <>
       <SettingsRow
         {...searchableSetting("browser-recording-key-presses")}
-        description="Show pressed keys and shortcuts in new recordings. Password fields are excluded."
+        title={t("Show key presses in recordings", "録画にキー操作を表示")}
+        description={t(
+          "Show pressed keys and shortcuts in new recordings. Password fields are excluded.",
+          "新しい録画にキー操作とショートカットを表示します。パスワード欄は対象外です。",
+        )}
         control={
           <Switch
             disabled={disabled}
@@ -565,7 +586,11 @@ function BrowserRecordingInputSettings({ disabled }: { readonly disabled: boolea
       />
       <SettingsRow
         {...searchableSetting("browser-recording-mouse-presses")}
-        description="Highlight mouse presses and held buttons in new recordings."
+        title={t("Show mouse presses in recordings", "録画にマウス操作を表示")}
+        description={t(
+          "Highlight mouse presses and held buttons in new recordings.",
+          "新しい録画でマウスのクリックや押したままのボタンを強調します。",
+        )}
         control={
           <Switch
             disabled={disabled}
@@ -582,13 +607,18 @@ function BrowserRecordingInputSettings({ disabled }: { readonly disabled: boolea
 }
 
 function BrowserRecordingFrameRateSetting({ disabled }: { readonly disabled: boolean }) {
+  const t = useTranslate();
   const frameRate = useClientSettings((settings) => settings.browserRecordingFrameRate);
   const updateSettings = useUpdatePrimarySettings();
 
   return (
     <SettingsRow
       {...searchableSetting("browser-recording-frame-rate")}
-      description="Maximum recording rate. 30 fps saves CPU and storage; 60 fps is smoother."
+      title={t("Browser recording frame rate", "ブラウザ録画のフレームレート")}
+      description={t(
+        "Maximum recording rate. 30 fps saves CPU and storage; 60 fps is smoother.",
+        "録画の最大フレームレートです。30 fps は CPU と保存容量を節約し、60 fps は滑らかに表示します。",
+      )}
       resetAction={
         !disabled && frameRate !== DEFAULT_BROWSER_RECORDING_FRAME_RATE ? (
           <SettingResetButton
@@ -636,13 +666,18 @@ const LINK_TARGET_LABELS: Readonly<Record<BrowserLinkTarget, string>> = {
 };
 
 function BrowserLinkTargetSetting({ disabled }: { readonly disabled: boolean }) {
+  const t = useTranslate();
   const linkTarget = useClientSettings((settings) => settings.browserLinkTarget);
   const updateSettings = useUpdatePrimarySettings();
 
   return (
     <SettingsRow
       {...searchableSetting("browser-link-target")}
-      description="Where links in the chat and terminal open. Hold ⌘ or Ctrl while clicking a link to open it in your default browser either way."
+      title={t("Open links in", "リンクの開き先")}
+      description={t(
+        "Where links in the chat and terminal open. Hold ⌘ or Ctrl while clicking a link to open it in your default browser either way.",
+        "チャットとターミナル内のリンクの開き先です。⌘ または Ctrl を押しながらクリックすると、設定にかかわらず標準ブラウザで開きます。",
+      )}
       resetAction={
         !disabled && linkTarget !== DEFAULT_BROWSER_LINK_TARGET ? (
           <SettingResetButton
@@ -688,6 +723,7 @@ const SEARCH_ENGINE_LABELS: Readonly<Record<BrowserSearchEngine, string>> = {
 };
 
 function BrowserSearchEngineSetting() {
+  const t = useTranslate();
   const engine = useClientSettings((settings) => settings.browserSearchEngine);
   const customUrl = useClientSettings((settings) => settings.browserCustomSearchUrl);
   const updateSettings = useUpdatePrimarySettings();
@@ -696,7 +732,11 @@ function BrowserSearchEngineSetting() {
     <>
       <SettingsRow
         {...searchableSetting("browser-search-engine")}
-        description="What the address bar searches when you type something that isn't a URL."
+        title={t("Search engine", "検索エンジン")}
+        description={t(
+          "What the address bar searches when you type something that isn't a URL.",
+          "アドレスバーに URL 以外を入力したときの検索先です。",
+        )}
         resetAction={
           engine !== DEFAULT_BROWSER_SEARCH_ENGINE || customUrl !== "" ? (
             <SettingResetButton
@@ -735,8 +775,11 @@ function BrowserSearchEngineSetting() {
       />
       {engine === "custom" ? (
         <SettingsRow
-          title="Custom search URL"
-          description="Use %s where the search terms go."
+          title={t("Custom search URL", "カスタム検索 URL")}
+          description={t(
+            "Use %s where the search terms go.",
+            "検索語を挿入する位置に %s を指定します。",
+          )}
           status={
             isValidSearchUrlTemplate(customUrl)
               ? undefined
@@ -763,13 +806,18 @@ function BrowserSearchEngineSetting() {
 }
 
 export function PullRequestLinksOpenInAppSetting() {
+  const t = useTranslate();
   const openInApp = useClientSettings((settings) => settings.pullRequestLinksOpenInApp);
   const updateSettings = useUpdatePrimarySettings();
 
   return (
     <SettingsRow
       {...searchableSetting("pull-request-links-open-in-app")}
-      description="Clicking a pull request link opens it in T3 Code. Turn off to open pull request links like any other link, on your git host."
+      title={t("Open pull requests in T3 Code", "プルリクエストを T3 Code で開く")}
+      description={t(
+        "Clicking a pull request link opens it in T3 Code. Turn off to open pull request links like any other link, on your git host.",
+        "プルリクエストのリンクを T3 Code で開きます。オフにすると他のリンクと同様に Git ホストで開きます。",
+      )}
       resetAction={
         openInApp ? null : (
           <SettingResetButton
@@ -792,13 +840,14 @@ export function PullRequestLinksOpenInAppSetting() {
 }
 
 function DeviceIntegrationSettings() {
+  const t = useTranslate();
   const { search, environment: selected } = useSettingsScope();
   const settings = useScopedSettings();
   const connected = selected?.connection.phase === "connected" && selected.serverConfig !== null;
   const environmentId = connected ? selected.environmentId : null;
 
   return (
-    <SettingsSection id="devices" title="Devices">
+    <SettingsSection id="devices" title={t("Devices", "デバイス")}>
       <DeviceIntegrationControls
         key={`${environmentId}:${JSON.stringify(search)}`}
         environmentId={environmentId}
@@ -1064,6 +1113,7 @@ function DeviceIntegrationControls({
 }
 
 function AgentBrowserAccessSetting() {
+  const t = useTranslate();
   const { scope } = useSettingsScope();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
@@ -1074,10 +1124,17 @@ function AgentBrowserAccessSetting() {
       serverScoped
       settingKeys={["enableAgentBrowserAccess"]}
       {...searchableSetting("agent-browser-access")}
+      title={t("Agent browser access", "エージェントのブラウザ利用")}
       description={
         isProjectScope
-          ? "Allow agents in this project to use the shared browser. Applies when the agent session next starts."
-          : "Allow agents to use the shared browser. Projects can override it."
+          ? t(
+              "Allow agents in this project to use the shared browser. Applies when the agent session next starts.",
+              "このプロジェクトのエージェントが共有ブラウザを使用できるようにします。次回のセッション開始時に適用されます。",
+            )
+          : t(
+              "Allow agents to use the shared browser. Projects can override it.",
+              "エージェントが共有ブラウザを使用できるようにします。プロジェクトごとに変更できます。",
+            )
       }
       resetAction={
         settings.enableAgentBrowserAccess !== DEFAULT_SERVER_SETTINGS.enableAgentBrowserAccess ? (
@@ -1104,13 +1161,18 @@ function AgentBrowserAccessSetting() {
 }
 
 function BrowserAutoShowFloatingPreviewSetting({ disabled }: { readonly disabled: boolean }) {
+  const t = useTranslate();
   const autoShow = useClientSettings((settings) => settings.browserAutoShowFloatingPreview);
   const updateSettings = useUpdatePrimarySettings();
 
   return (
     <SettingsRow
       {...searchableSetting("browser-auto-show-floating-preview")}
-      description="Show the floating preview when an agent opens a browser or device unless the agent says otherwise."
+      title={t("Auto-show floating preview", "フローティングプレビューを自動表示")}
+      description={t(
+        "Show the floating preview when an agent opens a browser or device unless the agent says otherwise.",
+        "エージェントが別途指定しない限り、ブラウザやデバイスを開くとフローティングプレビューを表示します。",
+      )}
       resetAction={
         !disabled && autoShow !== DEFAULT_BROWSER_AUTO_SHOW_FLOATING_PREVIEW ? (
           <SettingResetButton
@@ -1138,6 +1200,7 @@ function BrowserAutoShowFloatingPreviewSetting({ disabled }: { readonly disabled
 }
 
 function BrowserProfilesSetting({ disabled }: { readonly disabled: boolean }) {
+  const t = useTranslate();
   const userProfiles = useClientSettings((settings) => settings.browserProfiles);
   const defaultProfileId = useClientSettings((settings) => settings.browserDefaultProfileId);
   const settingsHydrated = useClientSettingsHydrated();
@@ -1323,7 +1386,11 @@ function BrowserProfilesSetting({ disabled }: { readonly disabled: boolean }) {
   return (
     <SettingsRow
       {...searchableSetting("browser-profiles")}
-      description="Profiles separate cookies and logins. Incognito data is cleared when the app closes."
+      title={t("Browser profiles", "ブラウザプロファイル")}
+      description={t(
+        "Profiles separate cookies and logins. Incognito data is cleared when the app closes.",
+        "プロファイルごとに Cookie とログインを分離します。シークレットモードのデータはアプリを閉じると消去されます。",
+      )}
       control={
         <Menu onOpenChange={(open) => open && loadSources()}>
           <MenuTrigger
@@ -1600,15 +1667,21 @@ function BrowserProfilesSetting({ disabled }: { readonly disabled: boolean }) {
 }
 
 export function BrowserSettingsPanel() {
+  const t = useTranslate();
   const desktopOnly = !isElectron;
-  const desktopOnlyMessage = desktopOnly ? "Only available in the desktop app." : undefined;
+  const desktopOnlyMessage = desktopOnly
+    ? t("Only available in the desktop app.", "デスクトップアプリでのみ利用できます。")
+    : undefined;
 
   return (
     <SettingsPageContainer>
-      <SettingsSection id="browser-agent-access" title="Agent access">
+      <SettingsSection
+        id="browser-agent-access"
+        title={t("Agent access", "エージェントのアクセス")}
+      >
         <AgentBrowserAccessSetting />
       </SettingsSection>
-      <SettingsSection id="browser" title="Browsing">
+      <SettingsSection id="browser" title={t("Browsing", "ブラウジング")}>
         <SettingsUnavailableGroup message={desktopOnlyMessage}>
           <BrowserProfilesSetting disabled={desktopOnly} />
           <BrowserLinkTargetSetting disabled={desktopOnly} />
@@ -1630,7 +1703,7 @@ export function BrowserSettingsPanel() {
           </SettingsUnavailableGroup>
         </AdvancedSettings>
       </SettingsSection>
-      <SettingsSection id="browser-recordings" title="Recordings">
+      <SettingsSection id="browser-recordings" title={t("Recordings", "録画")}>
         <SettingsUnavailableGroup message={desktopOnlyMessage}>
           <BrowserRecordingFrameRateSetting disabled={desktopOnly} />
           <BrowserRecordingInputSettings disabled={desktopOnly} />

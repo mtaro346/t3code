@@ -7,6 +7,7 @@ import {
   type RefObject,
 } from "react";
 
+import { useTranslate } from "~/i18n";
 import { cn } from "~/lib/utils";
 import { Button } from "../ui/button";
 import { SidebarInput, SidebarMenuButton } from "../ui/sidebar";
@@ -51,12 +52,13 @@ export function SidebarThreadHeader({
   activeSearchResultIndex,
   onClearSearch,
 }: SidebarThreadHeaderProps) {
+  const t = useTranslate();
   const resultsVisible = isSearching && searchResultCount > 0;
   // Shrinking results can remove the active option; never leave aria-activedescendant pointing at it.
   const activeResultExists = resultsVisible && activeSearchResultIndex < searchResultCount;
   const newThreadLabel = newThreadShortcutLabel
-    ? `New thread (${newThreadShortcutLabel})`
-    : "New thread";
+    ? `${t("New thread", "新しいスレッド")} (${newThreadShortcutLabel})`
+    : t("New thread", "新しいスレッド");
 
   return (
     <div className="flex items-center gap-1">
@@ -72,8 +74,8 @@ export function SidebarThreadHeader({
           value={searchQuery}
           onChange={(event) => onSearchQueryChange(event.currentTarget.value)}
           onKeyDown={onSearchKeyDown}
-          placeholder="Search"
-          aria-label="Search threads"
+          placeholder={t("Search", "検索")}
+          aria-label={t("Search threads", "スレッドを検索")}
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={resultsVisible}
@@ -91,7 +93,7 @@ export function SidebarThreadHeader({
             size="icon-micro"
             variant="ghost-muted"
             className="shrink-0"
-            aria-label="Clear thread search"
+            aria-label={t("Clear thread search", "検索をクリア")}
             onClick={() => {
               onClearSearch();
               searchInputRef.current?.focus();
@@ -105,19 +107,25 @@ export function SidebarThreadHeader({
         {hasProjects ? (
           <>
             {projectScope}
-            <SidebarHeaderIconButton label="Add project" onClick={onNewProject}>
+            <SidebarHeaderIconButton
+              label={t("Add project", "プロジェクトを追加")}
+              onClick={onNewProject}
+            >
               <FolderPlusIcon />
             </SidebarHeaderIconButton>
           </>
         ) : null}
         <SidebarHeaderIconButton
-          label="New thread"
+          label={t("New thread", "新しいスレッド")}
           tooltip={
             showNewThreadInProjectHint ? (
               <span className="flex flex-col gap-0.5">
                 <span>{newThreadLabel}</span>
                 <span className="text-muted-foreground">
-                  New thread in current project: Shift+click
+                  {t(
+                    "New thread in current project: Shift+click",
+                    "現在のプロジェクトで新規作成: Shift+クリック",
+                  )}
                   {newThreadInProjectShortcutLabel ? ` (${newThreadInProjectShortcutLabel})` : ""}
                 </span>
               </span>

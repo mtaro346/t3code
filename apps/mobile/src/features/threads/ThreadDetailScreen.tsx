@@ -1,3 +1,4 @@
+import { useTranslate } from "../../lib/i18n";
 import { useOpenThreadInspector } from "./thread-inspector-navigation";
 import { useSidebarWorkspaceTabs } from "../workspace/useSystemWorkspaceTabBar";
 import { useWorkspaceTabs } from "../workspace/WorkspaceTabsContext";
@@ -352,6 +353,7 @@ export function ThreadDetailScreen(props: ThreadDetailScreenProps) {
 }
 
 function ThreadDetailBody(props: ThreadDetailScreenProps) {
+  const t = useTranslate();
   const usesNativeWorkspaceColumns = useNativeWorkspaceColumnsSupported();
   const { layout } = useAdaptiveWorkspaceLayout();
   const deviceType = useDeviceType();
@@ -1284,7 +1286,7 @@ function ThreadDetailBody(props: ThreadDetailScreenProps) {
             renderFallback={(fallback) => (
               <RenderFailureView
                 {...fallback}
-                title="The conversation couldn't be displayed"
+                title={t("The conversation couldn't be displayed", "会話を表示できませんでした")}
                 bottomInset={estimatedOverlayHeight}
               />
             )}
@@ -1579,9 +1581,15 @@ function ThreadDetailBody(props: ThreadDetailScreenProps) {
                         placeholder={
                           props.activePendingApproval
                             ? props.activePendingApproval.supportsFeedback
-                              ? "Send feedback to decline this request"
-                              : "Send a message to decline and redirect the agent"
-                            : "Ask anything"
+                              ? t(
+                                  "Send feedback to decline this request",
+                                  "フィードバックを送信してこのリクエストを却下",
+                                )
+                              : t(
+                                  "Send a message to decline and redirect the agent",
+                                  "メッセージを送って却下し、エージェントに指示",
+                                )
+                            : t("Ask anything", "メッセージを入力")
                         }
                         contentMaxWidth={contentMaxWidth}
                         draftControls={props.draftMode?.controls}

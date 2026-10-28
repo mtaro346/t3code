@@ -1,3 +1,4 @@
+import { useTranslate } from "../../i18n";
 import { useAtomValue } from "@effect/atom-react";
 import { connectionStatusTitle } from "@t3tools/client-runtime/connection";
 import * as Option from "effect/Option";
@@ -353,6 +354,7 @@ export function ScheduledTasksSettings(target: {
   readonly environmentId?: EnvironmentId;
   readonly taskId?: ScheduledTaskId | undefined;
 }) {
+  const t = useTranslate();
   const { scope, environments, connectedEnvironments, environment } = useSettingsScope();
   const [editor, setEditor] = useState<{
     environmentId: EnvironmentId;
@@ -407,7 +409,7 @@ export function ScheduledTasksSettings(target: {
   return (
     <SettingsPageContainer>
       <SettingsSection
-        title="Scheduled tasks"
+        title={t("Scheduled tasks", "スケジュールタスク")}
         variant="plain"
         headerAction={
           <Button
@@ -420,12 +422,12 @@ export function ScheduledTasksSettings(target: {
             }
           >
             <PlusIcon className="size-3" />
-            New task
+            {t("New task", "新しいタスク")}
           </Button>
         }
       >
         {scope.kind === "unavailable" ? (
-          <SettingsSection title="Unavailable selection">
+          <SettingsSection title={t("Unavailable selection", "選択できません")}>
             <SettingsRow title={scope.message} />
           </SettingsSection>
         ) : environments.length === 0 ? (
@@ -434,8 +436,15 @@ export function ScheduledTasksSettings(target: {
               <EmptyMedia variant="icon">
                 <Clock3Icon />
               </EmptyMedia>
-              <EmptyTitle>No environments available</EmptyTitle>
-              <EmptyDescription>Connect an environment to manage scheduled tasks.</EmptyDescription>
+              <EmptyTitle>
+                {t("No environments available", "利用可能な環境がありません")}
+              </EmptyTitle>
+              <EmptyDescription>
+                {t(
+                  "Connect an environment to manage scheduled tasks.",
+                  "スケジュールタスクを管理するには環境に接続してください。",
+                )}
+              </EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : environments.length > 1 ? (
@@ -482,6 +491,7 @@ function ScheduledTaskEnvironmentList({
   readonly taskId: ScheduledTaskId | undefined;
   readonly onEdit: (environmentId: EnvironmentId, task: ScheduledTask) => void;
 }) {
+  const t = useTranslate();
   const { scope, environments } = useSettingsScope();
   const connectedIds = environments.flatMap((environment) =>
     environment.connection.phase === "connected" && environment.serverConfig !== null
@@ -568,15 +578,21 @@ function ScheduledTaskEnvironmentList({
       })}
       {taskId && linkedState?.tasks && linkedState.error === null && !linkedTask ? (
         <SettingsRow
-          title="Task unavailable"
-          description="This task no longer exists or is outside the selected project scope."
+          title={t("Task unavailable", "タスクを利用できません")}
+          description={t(
+            "This task no longer exists or is outside the selected project scope.",
+            "このタスクは存在しないか、選択したプロジェクトの対象外です。",
+          )}
           role="status"
         />
       ) : null}
       {populated.length === 0 && loaded.length > 0 ? (
         <SettingsRow
-          title="No scheduled tasks"
-          description="No tasks match this environment and project selection."
+          title={t("No scheduled tasks", "スケジュールタスクはありません")}
+          description={t(
+            "No tasks match this environment and project selection.",
+            "選択した環境とプロジェクトに一致するタスクはありません。",
+          )}
         />
       ) : null}
       {Object.entries(summaries).map(([label, entries]) => {
@@ -611,6 +627,7 @@ function ScheduledTaskEnvironmentSection({
   readonly taskId?: ScheduledTaskId | undefined;
   readonly onEdit: (environmentId: EnvironmentId, task: ScheduledTask) => void;
 }) {
+  const t = useTranslate();
   const { scope } = useSettingsScope();
   const connected =
     environment.connection.phase === "connected" && environment.serverConfig !== null;
@@ -639,26 +656,41 @@ function ScheduledTaskEnvironmentSection({
     >
       {!connected ? (
         <SettingsRow
-          title="Environment disconnected"
-          description={`Reconnect ${environment.label} to view its scheduled tasks.`}
+          title={t("Environment disconnected", "環境が切断されています")}
+          description={t(
+            `Reconnect ${environment.label} to view its scheduled tasks.`,
+            `スケジュールタスクを表示するには ${environment.label} に再接続してください。`,
+          )}
         />
       ) : tasksQuery.error ? (
-        <SettingsRow title="Could not load scheduled tasks" description={tasksQuery.error} />
+        <SettingsRow
+          title={t("Could not load scheduled tasks", "スケジュールタスクを読み込めませんでした")}
+          description={tasksQuery.error}
+        />
       ) : !tasks ? (
-        <SettingsRow title="Loading scheduled tasks…" role="status" />
+        <SettingsRow
+          title={t("Loading scheduled tasks…", "スケジュールタスクを読み込み中…")}
+          role="status"
+        />
       ) : (
         <>
           {taskId && !linkedTask ? (
             <SettingsRow
-              title="Task unavailable"
-              description="This task no longer exists or is outside the selected project scope."
+              title={t("Task unavailable", "タスクを利用できません")}
+              description={t(
+                "This task no longer exists or is outside the selected project scope.",
+                "このタスクは存在しないか、選択したプロジェクトの対象外です。",
+              )}
               role="status"
             />
           ) : null}
           {tasks.length === 0 ? (
             <SettingsRow
-              title="No scheduled tasks"
-              description="No tasks match this environment and project selection."
+              title={t("No scheduled tasks", "スケジュールタスクはありません")}
+              description={t(
+                "No tasks match this environment and project selection.",
+                "選択した環境とプロジェクトに一致するタスクはありません。",
+              )}
             />
           ) : (
             tasks.map((task) => (

@@ -481,6 +481,12 @@ export const SETTINGS_SEARCH_ITEMS = [
     searchTerms: ["notification sound alert completion input approval desktop"],
   },
   {
+    id: "display-language",
+    title: "Display language",
+    to: "/settings/general",
+    searchTerms: ["language japanese english locale"],
+  },
+  {
     id: "in-app-notifications",
     title: "In-app notifications",
     to: "/settings/general",
@@ -1298,6 +1304,7 @@ export function settingsForThisPlatform(
 export function searchSettings(
   query: string,
   items: ReadonlyArray<SettingsSearchItem> = SETTINGS_SEARCH_ITEMS,
+  translate: (label: string) => string = (label) => label,
 ): ReadonlyArray<SettingsSearchItem> {
   const normalizedQuery = normalizeSearchText(query);
   if (normalizedQuery.length === 0) return [];
@@ -1306,22 +1313,27 @@ export function searchSettings(
   return settingsForThisPlatform(items)
     .flatMap((item, index) => {
       const title = normalizeSearchText(item.title);
+      const translatedTitle = normalizeSearchText(translate(item.title));
       const fields = [
         title,
+        translatedTitle,
         normalizeSearchText(SETTINGS_SECTION_LABELS[item.to]),
+        normalizeSearchText(translate(SETTINGS_SECTION_LABELS[item.to])),
         ...(item.searchTerms ?? []).map(normalizeSearchText),
       ];
       if (!queryTokens.every((token) => fields.some((field) => field.includes(token)))) return [];
 
       const exactPhraseField = fields.findIndex((field) => field.includes(normalizedQuery));
       const rank =
-        title === normalizedQuery
+        title === normalizedQuery || translatedTitle === normalizedQuery
           ? 5
-          : title.startsWith(normalizedQuery)
+          : title.startsWith(normalizedQuery) || translatedTitle.startsWith(normalizedQuery)
             ? 4
-            : title.includes(normalizedQuery)
+            : title.includes(normalizedQuery) || translatedTitle.includes(normalizedQuery)
               ? 3
-              : queryTokens.every((token) => title.includes(token))
+              : queryTokens.every(
+                    (token) => title.includes(token) || translatedTitle.includes(token),
+                  )
                 ? 2
                 : exactPhraseField >= 0
                   ? 1

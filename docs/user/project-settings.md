@@ -1,5 +1,8 @@
 # Settings and project overrides
 
+Choose **Settings → General → Display language** to switch between English and Japanese.
+Each device saves its own choice. Some screens are still available only in English.
+
 On web and desktop, the "Applying settings for …" sentence at the top of Settings pages picks
 the project and environment a change applies to. Pages that only hold device preferences, such as
 Appearance, don't show it. They start at **All projects** and **All environments**

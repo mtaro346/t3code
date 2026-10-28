@@ -56,6 +56,17 @@ describe("clientPersistenceStorage", () => {
     },
   );
 
+  it("defaults older settings to English and persists the selected language", async () => {
+    const testWindow = getTestWindow();
+    testWindow.localStorage.setItem("t3code:client-settings:v1", "{}");
+    const { readBrowserClientSettings, writeBrowserClientSettings } =
+      await import("./clientPersistenceStorage");
+
+    expect(readBrowserClientSettings()?.language).toBe("en");
+    writeBrowserClientSettings({ ...DEFAULT_CLIENT_SETTINGS, language: "ja" });
+    expect(readBrowserClientSettings()?.language).toBe("ja");
+  });
+
   it("preserves saved settings across a transient read failure", async () => {
     const testWindow = getTestWindow();
     const settings = { ...DEFAULT_CLIENT_SETTINGS, timestampFormat: "12-hour" as const };

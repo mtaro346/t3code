@@ -1,3 +1,4 @@
+import { useTranslate } from "~/i18n";
 import { PROVIDER_DISPLAY_NAMES } from "@t3tools/contracts";
 import { settlePromise } from "@t3tools/client-runtime/state/runtime";
 import { useRef, useState } from "react";
@@ -65,6 +66,7 @@ export function useProviderUpdates() {
 }
 
 export function ProviderUpdatesAction() {
+  const t = useTranslate();
   const { machines, updateAll } = useProviderUpdates();
   const pending = useRef(false);
   const [isPending, setIsPending] = useState(false);
@@ -91,7 +93,7 @@ export function ProviderUpdatesAction() {
             disabled={isPending}
             onClick={() => void handleUpdate()}
           >
-            {isPending ? "Updating…" : "Update all"}
+            {isPending ? t("Updating…", "更新中…") : t("Update all", "すべて更新")}
           </Button>
         }
       />

@@ -62,6 +62,22 @@ describe("filterSettingsSections", () => {
     expect(visible(query)).toEqual(expected);
   });
 
+  it("matches Japanese labels and keeps the English terms searchable", () => {
+    const translate = (label: string) => (label === "Appearance" ? "外観" : label);
+    expect(filterSettingsSections(SECTIONS, "外観", translate)[0]?.rows[0]?.id).toBe(
+      "SettingsAppearance",
+    );
+    expect(filterSettingsSections(SECTIONS, "appearance", translate)[0]?.rows[0]?.id).toBe(
+      "SettingsAppearance",
+    );
+    expect(
+      filterSettingsSections(
+        [{ rows: [{ id: "SettingsOrganization", label: "General" }] }],
+        "日本語",
+      )[0]?.rows[0]?.id,
+    ).toBe("SettingsOrganization");
+  });
+
   it("drops sections that start empty", () => {
     expect(filterSettingsSections([{ rows: [] }, ...SECTIONS], "").length).toBe(SECTIONS.length);
   });

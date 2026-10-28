@@ -1,3 +1,4 @@
+import { useTranslate } from "~/i18n";
 import { SessionPermissions } from "./SessionPermissions";
 import {
   ChevronRightIcon,
@@ -113,6 +114,7 @@ export function SavedBackendListRow({
   onRemove,
   onAddRoute,
 }: SavedBackendListRowProps) {
+  const t = useTranslate();
   const [routesOpen, setRoutesOpen] = useState(false);
   const [permissionsOpen, setPermissionsOpen] = useState(false);
   const [diagnosisOpen, setDiagnosisOpen] = useState(false);
@@ -208,10 +210,23 @@ export function SavedBackendListRow({
       (lastDescriptor === undefined ? null : { environment: lastDescriptor }),
   );
   const routeCount = connectionRoutes(environment.entry).length;
+  const localizedStatuses: Record<string, string> = {
+    Connected: "接続済み",
+    Connecting: "接続中",
+    Reconnecting: "再接続中",
+    Offline: "オフライン",
+    "Not connected": "未接続",
+    "Connection failed": "接続に失敗",
+    "Client not supported": "非対応のクライアント",
+  };
   const subtitleText = [
     environmentTransportLabel(environment, connectedTarget),
     // The headline below names the failure in full.
-    diagnosis ? null : resumingServerUpdate ? "Restarting" : status.text,
+    diagnosis
+      ? null
+      : resumingServerUpdate
+        ? t("Restarting", "再起動中")
+        : t(status.text, localizedStatuses[status.text] ?? status.text),
     enabled && versionMismatch ? serverVersion : null,
   ]
     .filter((value): value is string => value !== null)
@@ -275,7 +290,9 @@ export function SavedBackendListRow({
             onClick={() => setRoutesOpen((open) => !open)}
             className="inline-flex shrink-0 items-center gap-0.5 rounded-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
           >
-            {routeCount === 1 ? "Routes" : `${routeCount} routes`}
+            {routeCount === 1
+              ? t("Routes", "接続経路")
+              : t(`${routeCount} routes`, `接続経路 ${routeCount} 件`)}
             <ChevronRightIcon
               aria-hidden
               className={cn(
@@ -362,7 +379,11 @@ export function SavedBackendListRow({
           serverLabel={`${environment.label} server`}
           fromVersion={lastDescriptor?.serverVersion}
           targetVersion={APP_VERSION}
-          label={serverUpdateState.status === "failed" ? "Retry update" : "Update"}
+          label={
+            serverUpdateState.status === "failed"
+              ? t("Retry update", "更新を再試行")
+              : t("Update", "更新")
+          }
         />
       ) : null}
       {showUpdateAction ? (
@@ -373,7 +394,11 @@ export function SavedBackendListRow({
           installation={environment.serverConfig?.environment.capabilities.serverInstallation}
           desktopAppUpdate={supportsDesktopAppUpdate(environment.serverConfig)}
           targetVersion={versionMismatch.clientVersion}
-          label={serverUpdateState.status === "failed" ? "Retry update" : "Update"}
+          label={
+            serverUpdateState.status === "failed"
+              ? t("Retry update", "更新を再試行")
+              : t("Update", "更新")
+          }
           appearance="icon"
         />
       ) : null}
@@ -390,7 +415,11 @@ export function SavedBackendListRow({
           }
         />
         <TooltipPopup side="top">
-          {blocked ? "Client not supported" : enabled ? "Switch off" : "Switch on"}
+          {blocked
+            ? t("Client not supported", "非対応のクライアント")
+            : enabled
+              ? t("Switch off", "オフにする")
+              : t("Switch on", "オンにする")}
         </TooltipPopup>
       </Tooltip>
       <Menu>
@@ -414,17 +443,23 @@ export function SavedBackendListRow({
           />
           <MenuItem onClick={() => setRoutesOpen((open) => !open)}>
             <RouteIcon />
-            {routesOpen ? "Hide routes" : "Routes"}
+            {routesOpen ? t("Hide routes", "接続経路を隠す") : t("Routes", "接続経路")}
           </MenuItem>
           {mcpUrl ? (
-            <MenuItem onClick={() => copyMcpUrl(mcpUrl, { url: mcpUrl })}>Copy MCP URL</MenuItem>
+            <MenuItem onClick={() => copyMcpUrl(mcpUrl, { url: mcpUrl })}>
+              {t("Copy MCP URL", "MCP URL をコピー")}
+            </MenuItem>
           ) : null}
           {errorTraceId ? (
-            <MenuItem onClick={() => copyTraceId(errorTraceId)}>Copy trace ID</MenuItem>
+            <MenuItem onClick={() => copyTraceId(errorTraceId)}>
+              {t("Copy trace ID", "トレース ID をコピー")}
+            </MenuItem>
           ) : null}
           <MenuSeparator />
           <MenuItem variant="destructive" onClick={() => onRemove(environment)}>
-            {isRemoving ? "Removing…" : "Remove from this device…"}
+            {isRemoving
+              ? t("Removing…", "削除中…")
+              : t("Remove from this device…", "このデバイスから削除…")}
           </MenuItem>
         </MenuPopup>
       </Menu>
@@ -694,17 +729,26 @@ export function CloudLinkRow({
 }
 
 function EmptyRemoteEnvironments({ cloudEnabled = true }: { readonly cloudEnabled?: boolean }) {
+  const t = useTranslate();
   return (
     <Empty className="min-h-52">
       <EmptyMedia variant="icon">
         <ChevronsLeftRightEllipsisIcon />
       </EmptyMedia>
       <EmptyHeader>
-        <EmptyTitle>No saved remote environments</EmptyTitle>
+        <EmptyTitle>
+          {t("No saved remote environments", "保存されたリモート環境はありません")}
+        </EmptyTitle>
         <EmptyDescription>
           {cloudEnabled
-            ? "Click “Add environment” to pair another environment, or connect one from T3 Connect."
-            : "Click “Add environment” to pair another environment."}
+            ? t(
+                "Click “Add environment” to pair another environment, or connect one from T3 Connect.",
+                "「環境を追加」で別の環境をペアリングするか、T3 Connect から接続してください。",
+              )
+            : t(
+                "Click “Add environment” to pair another environment.",
+                "「環境を追加」で別の環境をペアリングしてください。",
+              )}
         </EmptyDescription>
       </EmptyHeader>
     </Empty>

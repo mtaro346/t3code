@@ -1,3 +1,4 @@
+import { useTranslate } from "../../i18n";
 import type {
   StorageCleanupReport,
   StorageCleanupSettings,
@@ -47,6 +48,7 @@ import {
 import { settingsScopeEnvironmentLabel } from "./settingsScopeAxis";
 
 export function WorktreesDirectoryRow() {
+  const t = useTranslate();
   const { connectedEnvironments, targets } = useSettingsScope();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
@@ -64,6 +66,7 @@ export function WorktreesDirectoryRow() {
   return (
     <SettingsRow
       {...searchableSetting("storage-worktrees-location")}
+      title={t("Worktree location", "ワークツリーの保存先")}
       description={
         "Folder where new worktrees are created, on any drive, such as D:\\worktrees or ~/worktrees. Existing worktrees stay where they are. Leave empty to use the T3 home folder."
       }
@@ -275,6 +278,7 @@ const storageCleanupPermissionsAtom = environmentAtomList(
 );
 
 function CleanupSection() {
+  const t = useTranslate();
   const nowMinute = useNowMinute();
   const nowMs = Date.parse(`${nowMinute}:00.000Z`);
   const { connectedEnvironments } = useSettingsScope();
@@ -364,14 +368,18 @@ function CleanupSection() {
     ).finally(() => setPending(false));
   };
   return (
-    <SettingsSection id="storage-cleanup" title="Cleanup" variant="plain">
+    <SettingsSection id="storage-cleanup" title={t("Cleanup", "クリーンアップ")} variant="plain">
       <SettingsGroup>
         <SettingsRow
           {...searchableSetting("storage-delete-now")}
+          title={t("Delete now", "今すぐ削除")}
           description={
             <span>
               {!hasRules
-                ? "Turn on a cleanup rule to use this."
+                ? t(
+                    "Turn on a cleanup rule to use this.",
+                    "使用するにはクリーンアップルールを有効にしてください。",
+                  )
                 : summaries.map(({ environment, label, description }) => (
                     <span key={environment.environmentId} className="block">
                       {supported.length > 1 ? `${label}: ` : ""}
@@ -387,7 +395,7 @@ function CleanupSection() {
               disabled={pending || !hasRules || !state.some((entry) => entry.allowed)}
               onClick={() => void deleteNow()}
             >
-              {pending ? "Deleting…" : "Delete now"}
+              {pending ? t("Deleting…", "削除中…") : t("Delete now", "今すぐ削除")}
             </Button>
           }
         />
@@ -395,7 +403,7 @@ function CleanupSection() {
       {summaries.some(({ report }) => report !== null) && (
         <FoldedSettingsSection
           id="storage-cleanup-last-run"
-          title="Last run"
+          title={t("Last run", "前回の実行")}
           headerPlacement="inside"
           summary={lastRunSummary(
             summaries.filter(({ report }) => report !== null),
@@ -450,6 +458,7 @@ function StorageCleanupScopeNotice() {
 }
 
 export function WorktreeCleanupSection() {
+  const t = useTranslate();
   const { scope, environments, connectedEnvironments, targets, target } = useSettingsScope();
   const scopedSettings = useScopedSettings();
   const isProjectScope = scope.kind === "project" || scope.kind === "checkout";
@@ -472,7 +481,7 @@ export function WorktreeCleanupSection() {
           key
         ] !== settings[key],
     )
-      ? "Mixed across selected machines"
+      ? t("Mixed across selected machines", "選択したマシンで設定が異なります")
       : undefined;
   const update = (patch: Partial<StorageCleanupSettings>) =>
     updateSettings({ storageCleanup: patch });
@@ -489,7 +498,11 @@ export function WorktreeCleanupSection() {
     )
   ) {
     return (
-      <SettingsSection id="storage-worktrees" title="Cleanup" variant="plain">
+      <SettingsSection
+        id="storage-worktrees"
+        title={t("Cleanup", "クリーンアップ")}
+        variant="plain"
+      >
         <SettingsScopeNotice inline target="all">
           Update the selected machines to configure project worktree cleanup.
         </SettingsScopeNotice>
@@ -498,24 +511,37 @@ export function WorktreeCleanupSection() {
   }
   if (!supportsStorageCleanup(connectedEnvironments)) {
     return (
-      <SettingsSection id="storage-worktrees" title="Cleanup" variant="plain">
+      <SettingsSection
+        id="storage-worktrees"
+        title={t("Cleanup", "クリーンアップ")}
+        variant="plain"
+      >
         <StorageCleanupScopeNotice />
       </SettingsSection>
     );
   }
 
   return (
-    <SettingsSection id="storage-worktrees" title="Cleanup">
+    <SettingsSection id="storage-worktrees" title={t("Cleanup", "クリーンアップ")}>
       <>
         {isProjectScope && (
           <SettingsRow
-            title="Automatic worktree cleanup"
+            title={t("Automatic worktree cleanup", "ワークツリーの自動クリーンアップ")}
             description={
               mode === "off"
-                ? "Keep this project's worktrees until you delete them manually."
+                ? t(
+                    "Keep this project's worktrees until you delete them manually.",
+                    "このプロジェクトのワークツリーは手動で削除するまで保持します。",
+                  )
                 : mode === "custom"
-                  ? "Use these rules for this project."
-                  : "Use each machine's worktree cleanup settings."
+                  ? t(
+                      "Use these rules for this project.",
+                      "このプロジェクトには以下のルールを適用します。",
+                    )
+                  : t(
+                      "Use each machine's worktree cleanup settings.",
+                      "各マシンのワークツリークリーンアップ設定を使用します。",
+                    )
             }
             serverScoped
             settingKeys={["worktreeCleanup"]}
@@ -553,9 +579,15 @@ export function WorktreeCleanupSection() {
         {(!isProjectScope || (!mixedModes && mode === "custom")) && (
           <>
             <SettingsRow
-              title="Delete worktrees with deleted threads"
+              title={t(
+                "Delete worktrees with deleted threads",
+                "スレッド削除時にワークツリーを削除",
+              )}
               status={ruleStatus("worktreeOnDelete")}
-              description="Remove unused worktrees when active or archived threads are deleted. Worktrees with local changes are kept."
+              description={t(
+                "Remove unused worktrees when active or archived threads are deleted. Worktrees with local changes are kept.",
+                "進行中またはアーカイブ済みのスレッドが削除されたとき、未使用のワークツリーを削除します。ローカルに変更があるものは保持します。",
+              )}
               serverScoped={!isProjectScope}
               control={
                 <Switch
@@ -566,9 +598,12 @@ export function WorktreeCleanupSection() {
               }
             />
             <SettingsRow
-              title="Delete merged worktrees"
+              title={t("Delete merged worktrees", "マージ済みワークツリーを削除")}
               status={ruleStatus("worktreeOnMerge")}
-              description="Remove worktrees whose pull request is merged and whose commits are included in the default branch."
+              description={t(
+                "Remove worktrees whose pull request is merged and whose commits are included in the default branch.",
+                "プルリクエストがマージされ、コミットがデフォルトブランチに含まれるワークツリーを削除します。",
+              )}
               serverScoped={!isProjectScope}
               control={
                 <Switch
@@ -579,9 +614,12 @@ export function WorktreeCleanupSection() {
               }
             />
             <SettingsRow
-              title="Delete inactive worktrees"
+              title={t("Delete inactive worktrees", "使用されていないワークツリーを削除")}
               status={ruleStatus("worktreeAfterDays")}
-              description="Remove worktrees after their threads have been inactive for this many days. Branches and thread history are kept."
+              description={t(
+                "Remove worktrees after their threads have been inactive for this many days. Branches and thread history are kept.",
+                "スレッドが指定日数使用されていないワークツリーを削除します。ブランチとスレッド履歴は保持します。",
+              )}
               serverScoped={!isProjectScope}
               control={
                 <RetentionControl
@@ -602,7 +640,7 @@ export function WorktreeCleanupSection() {
                     true,
                 ) && (
                   <SettingsRow
-                    title="Delete settled worktrees"
+                    title={t("Delete settled worktrees", "完了したワークツリーを削除")}
                     status={[
                       ruleStatus("worktreeSettledAfterDays"),
                       environments.length > connectedEnvironments.length
@@ -611,7 +649,10 @@ export function WorktreeCleanupSection() {
                     ]
                       .filter(Boolean)
                       .join(". ")}
-                    description="Remove worktrees this many days after their thread settles. Set 0 days to remove them at the next cleanup. Branches and thread history are kept."
+                    description={t(
+                      "Remove worktrees this many days after their thread settles. Set 0 days to remove them at the next cleanup. Branches and thread history are kept.",
+                      "スレッドの完了から指定日数後にワークツリーを削除します。0 日の場合、次回のクリーンアップで削除します。ブランチとスレッド履歴は保持します。",
+                    )}
                     serverScoped={!isProjectScope}
                     control={
                       <RetentionControl
@@ -626,9 +667,12 @@ export function WorktreeCleanupSection() {
                   />
                 )}
               <SettingsRow
-                title="Delete unchanged worktrees"
+                title={t("Delete unchanged worktrees", "変更のないワークツリーを削除")}
                 status={ruleStatus("worktreeUnchanged")}
-                description="Remove worktrees with no commits beyond the default branch."
+                description={t(
+                  "Remove worktrees with no commits beyond the default branch.",
+                  "デフォルトブランチから追加のコミットがないワークツリーを削除します。",
+                )}
                 serverScoped={!isProjectScope}
                 control={
                   <Switch
@@ -647,10 +691,19 @@ export function WorktreeCleanupSection() {
                   status={ruleStatus("worktreeKeepWhen")}
                   description={
                     settings.worktreeKeepWhen === "any-local-files"
-                      ? "Includes ignored files, except node_modules."
+                      ? t(
+                          "Includes ignored files, except node_modules.",
+                          "node_modules を除く無視対象ファイルも含めます。",
+                        )
                       : settings.worktreeKeepWhen === "tracked-changes"
-                        ? "Deletes untracked and ignored files, including .env."
-                        : "Keeps edits and untracked files. Deletes ignored files, including .env."
+                        ? t(
+                            "Deletes untracked and ignored files, including .env.",
+                            "追跡されていないファイルと .env を含む無視対象ファイルを削除します。",
+                          )
+                        : t(
+                            "Keeps edits and untracked files. Deletes ignored files, including .env.",
+                            "編集と未追跡ファイルを保持します。.env を含む無視対象ファイルは削除します。",
+                          )
                   }
                   serverScoped={!isProjectScope}
                   control={
@@ -691,6 +744,7 @@ export function WorktreeCleanupSection() {
 
 /** Retention for logs and captures, and the manual cleanup run, which covers worktrees too. */
 export function StorageCleanupSections() {
+  const t = useTranslate();
   const { scope, connectedEnvironments, targets } = useSettingsScope();
   const scopedSettings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
@@ -698,7 +752,7 @@ export function StorageCleanupSections() {
   const settings = scopedSettings.storageCleanup;
   const ruleStatus = (key: "browserArtifactsAfterDays" | "logsAfterDays") =>
     targets.some((target) => target.settings.storageCleanup[key] !== settings[key])
-      ? "Mixed across selected machines"
+      ? t("Mixed across selected machines", "選択したマシンで設定が異なります")
       : undefined;
   const update = (patch: Partial<StorageCleanupSettings>) =>
     updateSettings({ storageCleanup: patch });
@@ -714,7 +768,11 @@ export function StorageCleanupSections() {
     return (
       <>
         {databaseStorageNotice}
-        <SettingsSection id="storage-artifacts" title="Artifacts and logs" variant="plain">
+        <SettingsSection
+          id="storage-artifacts"
+          title={t("Artifacts and logs", "成果物とログ")}
+          variant="plain"
+        >
           <StorageCleanupScopeNotice />
         </SettingsSection>
       </>
@@ -724,11 +782,14 @@ export function StorageCleanupSections() {
   return (
     <>
       {databaseStorageNotice}
-      <SettingsSection id="storage-artifacts" title="Artifacts and logs">
+      <SettingsSection id="storage-artifacts" title={t("Artifacts and logs", "成果物とログ")}>
         <SettingsRow
-          title="Delete old browser artifacts"
+          title={t("Delete old browser artifacts", "古いブラウザ成果物を削除")}
           status={ruleStatus("browserArtifactsAfterDays")}
-          description="Delete saved browser captures after this many days. Older capture links will no longer open."
+          description={t(
+            "Delete saved browser captures after this many days. Older capture links will no longer open.",
+            "保存したブラウザのキャプチャを指定日数後に削除します。古いキャプチャのリンクは開けなくなります。",
+          )}
           serverScoped
           control={
             <RetentionControl
@@ -739,9 +800,12 @@ export function StorageCleanupSections() {
           }
         />
         <SettingsRow
-          title="Delete old rotated logs"
+          title={t("Delete old rotated logs", "古いローテーション済みログを削除")}
           status={ruleStatus("logsAfterDays")}
-          description="Delete inactive rotated log files after this many days. Current logs are kept."
+          description={t(
+            "Delete inactive rotated log files after this many days. Current logs are kept.",
+            "使用されていないローテーション済みログを指定日数後に削除します。現在のログは保持します。",
+          )}
           serverScoped
           control={
             <RetentionControl

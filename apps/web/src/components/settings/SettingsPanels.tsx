@@ -1,3 +1,5 @@
+import { useTranslate } from "../../i18n";
+import { updateClientSettings, useClientSettings } from "../../hooks/useSettings";
 import { NotificationSettings } from "./NotificationSettings";
 import { PRIVACY_POLICY_URL } from "../../legalLinks";
 import { CheckIcon } from "lucide-react";
@@ -115,6 +117,11 @@ const SIDEBAR_PROJECT_SORT_ORDER_LABELS: Record<SidebarProjectSortOrder, string>
   created_at: "Created at",
   manual: "Manual",
 };
+const SIDEBAR_PROJECT_SORT_ORDER_LABELS_JA: Record<SidebarProjectSortOrder, string> = {
+  updated_at: "最後のユーザーメッセージ",
+  created_at: "作成日時",
+  manual: "手動",
+};
 const isSidebarProjectSortOrder = Schema.is(SidebarProjectSortOrder);
 
 const TIMESTAMP_FORMAT_LABELS = {
@@ -132,6 +139,12 @@ const QUIT_CONFIRMATION_MODE_LABELS: Record<QuitConfirmationMode, string> = {
   direct: "Direct",
   hold: "Hold",
   "double-click": "Double press",
+};
+
+const QUIT_CONFIRMATION_MODE_LABELS_JA: Record<QuitConfirmationMode, string> = {
+  direct: "すぐに終了",
+  hold: "長押し",
+  "double-click": "2回押す",
 };
 
 const DEFAULT_DRIVER_KIND = ProviderDriverKind.make("codex");
@@ -395,6 +408,7 @@ export function useSettingsRestore(onRestored?: () => void) {
   const isBackgroundActivityDirty = hasChangedBackgroundActivitySettings(settings);
 
   const changedSettingLabels = [
+    ...(settings.language !== DEFAULT_UNIFIED_SETTINGS.language ? ["Language"] : []),
     ...(theme !== "system" ? ["Theme"] : []),
     ...(!followSystem ? ["Follow system"] : []),
     ...(themeHalves !== null ? ["Theme mix"] : []),
@@ -585,6 +599,7 @@ export function useSettingsRestore(onRestored?: () => void) {
       diffColorScheme: DEFAULT_UNIFIED_SETTINGS.diffColorScheme,
       chatWidth: DEFAULT_UNIFIED_SETTINGS.chatWidth,
       mathRenderingEnabled: DEFAULT_UNIFIED_SETTINGS.mathRenderingEnabled,
+      language: DEFAULT_UNIFIED_SETTINGS.language,
       timestampFormat: DEFAULT_UNIFIED_SETTINGS.timestampFormat,
       notificationMode: DEFAULT_UNIFIED_SETTINGS.notificationMode,
       inAppNotificationsEnabled: DEFAULT_UNIFIED_SETTINGS.inAppNotificationsEnabled,
@@ -750,6 +765,8 @@ export function LegacyFeaturesSection() {
 }
 
 export function GeneralSettingsPanel() {
+  const t = useTranslate();
+  const language = useClientSettings((settings) => settings.language);
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   const lastEnabledProjectGroupingMode = useRef<SidebarProjectGroupingMode>(
@@ -758,25 +775,64 @@ export function GeneralSettingsPanel() {
 
   return (
     <SettingsPageContainer>
-      <SettingsSection id="notifications" title="Notifications">
+      <SettingsSection id="language" title={t("Language", "言語")}>
+        <SettingsRow
+          {...searchableSetting("display-language")}
+          title={t("Display language", "表示言語")}
+          control={
+            <Select
+              value={language}
+              onValueChange={(value) => {
+                if (value === "en" || value === "ja")
+                  void updateClientSettings({ language: value });
+              }}
+            >
+              <SelectTrigger
+                size="sm"
+                className="w-full sm:w-40"
+                aria-label={t("Display language", "表示言語")}
+              >
+                <SelectValue>{language === "ja" ? "日本語" : "English"}</SelectValue>
+              </SelectTrigger>
+              <SelectPopup align="end" alignItemWithTrigger={false}>
+                <SelectItem hideIndicator value="en">
+                  English
+                </SelectItem>
+                <SelectItem hideIndicator value="ja">
+                  日本語
+                </SelectItem>
+              </SelectPopup>
+            </Select>
+          }
+        />
+      </SettingsSection>
+      <SettingsSection id="notifications" title={t("Notifications", "通知")}>
         <NotificationSettings />
         <SettingsRow
           {...searchableSetting("in-app-notifications")}
-          description="Show a toast when another thread finishes, fails, or needs input or approval while this app has focus."
+          title={t("In-app notifications", "アプリ内通知")}
+          description={t(
+            "Show a toast when another thread finishes, fails, or needs input or approval while this app has focus.",
+            "このアプリの表示中に、別のスレッドが完了、失敗、入力待ち、承認待ちになったときに通知します。",
+          )}
           control={
             <Switch
               checked={settings.inAppNotificationsEnabled}
               onCheckedChange={(checked) => updateSettings({ inAppNotificationsEnabled: checked })}
-              aria-label="In-app notifications"
+              aria-label={t("In-app notifications", "アプリ内通知")}
             />
           }
         />
       </SettingsSection>
 
-      <SettingsSection id="sidebar" title="Sidebar">
+      <SettingsSection id="sidebar" title={t("Sidebar", "サイドバー")}>
         <SettingsRow
           {...searchableSetting("project-grouping")}
-          description="Combine matching repositories across environments."
+          title={t("Project grouping", "プロジェクトのグループ化")}
+          description={t(
+            "Combine matching repositories across environments.",
+            "環境をまたいで同じリポジトリをまとめます。",
+          )}
           resetAction={
             settings.sidebarProjectGroupingMode !==
             DEFAULT_UNIFIED_SETTINGS.sidebarProjectGroupingMode ? (
@@ -805,13 +861,17 @@ export function GeneralSettingsPanel() {
                   ),
                 });
               }}
-              aria-label="Project grouping"
+              aria-label={t("Project grouping", "プロジェクトのグループ化")}
             />
           }
         />
         <SettingsRow
           {...searchableSetting("project-order")}
-          description="Order of projects in the sidebar project picker and command palette."
+          title={t("Project order", "プロジェクトの並び順")}
+          description={t(
+            "Order of projects in the sidebar project picker and command palette.",
+            "サイドバーとコマンドパレットでのプロジェクトの並び順です。",
+          )}
           resetAction={
             settings.sidebarProjectSortOrder !==
             DEFAULT_UNIFIED_SETTINGS.sidebarProjectSortOrder ? (
@@ -834,15 +894,25 @@ export function GeneralSettingsPanel() {
                 }
               }}
             >
-              <SelectTrigger size="sm" className="w-full sm:w-44" aria-label="Project order">
+              <SelectTrigger
+                size="sm"
+                className="w-full sm:w-44"
+                aria-label={t("Project order", "プロジェクトの並び順")}
+              >
                 <SelectValue>
-                  {SIDEBAR_PROJECT_SORT_ORDER_LABELS[settings.sidebarProjectSortOrder]}
+                  {t(
+                    SIDEBAR_PROJECT_SORT_ORDER_LABELS[settings.sidebarProjectSortOrder],
+                    SIDEBAR_PROJECT_SORT_ORDER_LABELS_JA[settings.sidebarProjectSortOrder],
+                  )}
                 </SelectValue>
               </SelectTrigger>
               <SelectPopup align="end" alignItemWithTrigger={false}>
                 {SidebarProjectSortOrder.literals.map((sortOrder) => (
                   <SelectItem hideIndicator key={sortOrder} value={sortOrder}>
-                    {SIDEBAR_PROJECT_SORT_ORDER_LABELS[sortOrder]}
+                    {t(
+                      SIDEBAR_PROJECT_SORT_ORDER_LABELS[sortOrder],
+                      SIDEBAR_PROJECT_SORT_ORDER_LABELS_JA[sortOrder],
+                    )}
                   </SelectItem>
                 ))}
               </SelectPopup>
@@ -851,7 +921,11 @@ export function GeneralSettingsPanel() {
         />
         <SettingsRow
           {...searchableSetting("working-shelf")}
-          description="Fold working and monitoring threads into a Working section. They return to the top of the inbox when they need you."
+          title={t("Working section", "作業中セクション")}
+          description={t(
+            "Fold working and monitoring threads into a Working section. They return to the top of the inbox when they need you.",
+            "作業中や監視中のスレッドをまとめます。対応が必要になると受信トレイの上部に戻ります。",
+          )}
           resetAction={
             settings.sidebarWorkingShelfEnabled !==
             DEFAULT_UNIFIED_SETTINGS.sidebarWorkingShelfEnabled ? (
@@ -871,16 +945,20 @@ export function GeneralSettingsPanel() {
               onCheckedChange={(checked) =>
                 updateSettings({ sidebarWorkingShelfEnabled: Boolean(checked) })
               }
-              aria-label="Working section"
+              aria-label={t("Working section", "作業中セクション")}
             />
           }
         />
       </SettingsSection>
 
-      <SettingsSection id="confirmations" title="Confirmations">
+      <SettingsSection id="confirmations" title={t("Confirmations", "確認")}>
         <SettingsRow
           {...searchableSetting("unpin-confirmation")}
-          description="Ask before unpinning a thread from the pinned section."
+          title={t("Unpin confirmation", "ピン留め解除の確認")}
+          description={t(
+            "Ask before unpinning a thread from the pinned section.",
+            "スレッドのピン留めを解除する前に確認します。",
+          )}
           resetAction={
             settings.confirmThreadUnpin !== DEFAULT_UNIFIED_SETTINGS.confirmThreadUnpin ? (
               <SettingResetButton
@@ -899,13 +977,17 @@ export function GeneralSettingsPanel() {
               onCheckedChange={(checked) =>
                 updateSettings({ confirmThreadUnpin: Boolean(checked) })
               }
-              aria-label="Confirm thread unpinning"
+              aria-label={t("Confirm thread unpinning", "ピン留め解除の確認")}
             />
           }
         />
         <SettingsRow
           {...searchableSetting("archive-confirmation")}
-          description="Require a second click on the inline archive action before a thread is archived."
+          title={t("Archive confirmation", "アーカイブの確認")}
+          description={t(
+            "Require a second click on the inline archive action before a thread is archived.",
+            "スレッドをアーカイブする前にもう一度クリックする必要があります。",
+          )}
           resetAction={
             settings.confirmThreadArchive !== DEFAULT_UNIFIED_SETTINGS.confirmThreadArchive ? (
               <SettingResetButton
@@ -924,13 +1006,17 @@ export function GeneralSettingsPanel() {
               onCheckedChange={(checked) =>
                 updateSettings({ confirmThreadArchive: Boolean(checked) })
               }
-              aria-label="Confirm thread archiving"
+              aria-label={t("Confirm thread archiving", "アーカイブの確認")}
             />
           }
         />
         <SettingsRow
           {...searchableSetting("delete-confirmation")}
-          description="Ask before deleting a thread and its chat history."
+          title={t("Delete confirmation", "削除の確認")}
+          description={t(
+            "Ask before deleting a thread and its chat history.",
+            "スレッドとチャット履歴を削除する前に確認します。",
+          )}
           resetAction={
             settings.confirmThreadDelete !== DEFAULT_UNIFIED_SETTINGS.confirmThreadDelete ? (
               <SettingResetButton
@@ -949,14 +1035,18 @@ export function GeneralSettingsPanel() {
               onCheckedChange={(checked) =>
                 updateSettings({ confirmThreadDelete: Boolean(checked) })
               }
-              aria-label="Confirm thread deletion"
+              aria-label={t("Confirm thread deletion", "削除の確認")}
             />
           }
         />
         {isElectron ? (
           <SettingsRow
             {...searchableSetting("quit-confirmation")}
-            description="Hold mode also quits on two quick presses."
+            title={t("Quit shortcut", "終了ショートカット")}
+            description={t(
+              "Hold mode also quits on two quick presses.",
+              "長押しモードでは素早く2回押しても終了します。",
+            )}
             resetAction={
               settings.confirmQuit !== DEFAULT_UNIFIED_SETTINGS.confirmQuit ? (
                 <SettingResetButton
@@ -979,14 +1069,19 @@ export function GeneralSettingsPanel() {
                 <SelectTrigger
                   size="sm"
                   className="w-full sm:w-40"
-                  aria-label="Quit shortcut behavior"
+                  aria-label={t("Quit shortcut behavior", "終了ショートカットの動作")}
                 >
-                  <SelectValue>{QUIT_CONFIRMATION_MODE_LABELS[settings.confirmQuit]}</SelectValue>
+                  <SelectValue>
+                    {t(
+                      QUIT_CONFIRMATION_MODE_LABELS[settings.confirmQuit],
+                      QUIT_CONFIRMATION_MODE_LABELS_JA[settings.confirmQuit],
+                    )}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
                   {Object.entries(QUIT_CONFIRMATION_MODE_LABELS).map(([value, label]) => (
                     <SelectItem hideIndicator key={value} value={value}>
-                      {label}
+                      {t(label, QUIT_CONFIRMATION_MODE_LABELS_JA[value as QuitConfirmationMode])}
                     </SelectItem>
                   ))}
                 </SelectPopup>
@@ -996,10 +1091,14 @@ export function GeneralSettingsPanel() {
         ) : null}
       </SettingsSection>
 
-      <SettingsSection id="display" title="Display">
+      <SettingsSection id="display" title={t("Display", "表示")}>
         <SettingsRow
           {...searchableSetting("time-format")}
-          description="System default follows your browser or OS clock preference."
+          title={t("Time format", "時刻の表示形式")}
+          description={t(
+            "System default follows your browser or OS clock preference.",
+            "システムの設定はブラウザーまたは OS の時刻表示に従います。",
+          )}
           resetAction={
             settings.timestampFormat !== DEFAULT_UNIFIED_SETTINGS.timestampFormat ? (
               <SettingResetButton
@@ -1021,12 +1120,20 @@ export function GeneralSettingsPanel() {
                 }
               }}
             >
-              <SelectTrigger size="sm" className="w-full sm:w-40" aria-label="Timestamp format">
-                <SelectValue>{TIMESTAMP_FORMAT_LABELS[settings.timestampFormat]}</SelectValue>
+              <SelectTrigger
+                size="sm"
+                className="w-full sm:w-40"
+                aria-label={t("Timestamp format", "時刻の表示形式")}
+              >
+                <SelectValue>
+                  {settings.timestampFormat === "locale"
+                    ? t("System default", "システムの設定")
+                    : TIMESTAMP_FORMAT_LABELS[settings.timestampFormat]}
+                </SelectValue>
               </SelectTrigger>
               <SelectPopup align="end" alignItemWithTrigger={false}>
                 <SelectItem hideIndicator value="locale">
-                  {TIMESTAMP_FORMAT_LABELS.locale}
+                  {t("System default", "システムの設定")}
                 </SelectItem>
                 <SelectItem hideIndicator value="12-hour">
                   {TIMESTAMP_FORMAT_LABELS["12-hour"]}
@@ -1044,21 +1151,35 @@ export function GeneralSettingsPanel() {
 }
 
 export function ChatSettingsPanel() {
+  const t = useTranslate();
   const modifierLabel = isMacPlatform(navigator.platform) ? "⌘" : "Ctrl";
   const sendShortcutOptions = [
     { value: "enter", label: "Enter" },
-    { value: "mod-enter-multiline", label: `${modifierLabel} + Enter for multiline prompts` },
-    { value: "mod-enter", label: `${modifierLabel} + Enter always` },
+    {
+      value: "mod-enter-multiline",
+      label: t(
+        `${modifierLabel} + Enter for multiline prompts`,
+        `複数行の入力では ${modifierLabel} + Enter`,
+      ),
+    },
+    {
+      value: "mod-enter",
+      label: t(`${modifierLabel} + Enter always`, `常に ${modifierLabel} + Enter`),
+    },
   ] as const;
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
 
   return (
     <SettingsPageContainer>
-      <SettingsSection id="composer" title="Composer">
+      <SettingsSection id="composer" title={t("Composer", "入力欄")}>
         <SettingsRow
           {...searchableSetting("composer-rich-text")}
-          description="Show formatted Markdown as you type."
+          title={t("Rich text composer", "リッチテキスト入力")}
+          description={t(
+            "Show formatted Markdown as you type.",
+            "入力中に Markdown の書式を表示します。",
+          )}
           resetAction={
             settings.composerRichTextEnabled !==
             DEFAULT_UNIFIED_SETTINGS.composerRichTextEnabled ? (
@@ -1084,7 +1205,11 @@ export function ChatSettingsPanel() {
         />
         <SettingsRow
           {...searchableSetting("send-shortcut")}
-          description="Choose when Enter sends a prompt or inserts a new line"
+          title={t("Send shortcut", "送信ショートカット")}
+          description={t(
+            "Choose when Enter sends a prompt or inserts a new line",
+            "Enter キーで送信するか、改行するかを選びます。",
+          )}
           resetAction={
             settings.sendShortcut !== DEFAULT_UNIFIED_SETTINGS.sendShortcut ? (
               <SettingResetButton
@@ -1130,7 +1255,11 @@ export function ChatSettingsPanel() {
         />
         <SettingsRow
           {...searchableSetting("composer-collapse")}
-          description="Rest the composer of an existing thread into a single line when you scroll the conversation. Focus the composer or start typing to expand it again."
+          title={t("Collapse composer on scroll", "スクロール時に入力欄を折りたたむ")}
+          description={t(
+            "Rest the composer of an existing thread into a single line when you scroll the conversation. Focus the composer or start typing to expand it again.",
+            "会話をスクロールすると入力欄を一行に折りたたみます。入力欄を選択するか入力を始めると再び展開します。",
+          )}
           resetAction={
             settings.composerCollapseOnScroll !==
             DEFAULT_UNIFIED_SETTINGS.composerCollapseOnScroll ? (
@@ -1157,7 +1286,11 @@ export function ChatSettingsPanel() {
         <AdvancedSettings targetIds={[searchableSetting("skills-in-slash-menu").id]}>
           <SettingsRow
             {...searchableSetting("skills-in-slash-menu")}
-            description="Also include skills in the / command menu. Skills always appear when you type $."
+            title={t("Show skills in slash menu", "スラッシュメニューにスキルを表示")}
+            description={t(
+              "Also include skills in the / command menu. Skills always appear when you type $.",
+              "/ コマンドメニューにもスキルを表示します。$ を入力した場合は常に表示されます。",
+            )}
             resetAction={
               settings.showSkillsInSlashMenu !== DEFAULT_UNIFIED_SETTINGS.showSkillsInSlashMenu ? (
                 <SettingResetButton
@@ -1183,14 +1316,24 @@ export function ChatSettingsPanel() {
         </AdvancedSettings>
       </SettingsSection>
 
-      <SettingsSection id="follow-ups" title="Follow-ups">
+      <SettingsSection id="follow-ups" title={t("Follow-ups", "追加メッセージ")}>
         <SettingsRow
           {...searchableSetting("follow-up-behavior")}
+          title={t("Follow-up behavior", "追加メッセージの動作")}
           description={
-            "Queue follow-ups while the agent runs or steer the current run. " +
+            t(
+              "Queue follow-ups while the agent runs or steer the current run. ",
+              "エージェントの実行中、追加メッセージをキューに入れるか、現在の実行に指示を送るか選びます。",
+            ) +
             (settings.sendShortcut === "mod-enter-multiline"
-              ? `Press ${modifierLabel} + Enter for single-line prompts or ${modifierLabel} + Shift + Enter for multiline prompts to do the opposite for one message.`
-              : `Press ${modifierLabel}${settings.sendShortcut === "mod-enter" ? " + Shift" : ""} + Enter to do the opposite for one message.`)
+              ? t(
+                  `Press ${modifierLabel} + Enter for single-line prompts or ${modifierLabel} + Shift + Enter for multiline prompts to do the opposite for one message.`,
+                  `単一行では ${modifierLabel} + Enter、複数行では ${modifierLabel} + Shift + Enter を押すと、そのメッセージのみ動作を切り替えます。`,
+                )
+              : t(
+                  `Press ${modifierLabel}${settings.sendShortcut === "mod-enter" ? " + Shift" : ""} + Enter to do the opposite for one message.`,
+                  `${modifierLabel}${settings.sendShortcut === "mod-enter" ? " + Shift" : ""} + Enter を押すと、そのメッセージのみ動作を切り替えます。`,
+                ))
           }
           resetAction={
             settings.followUpBehavior !== DEFAULT_UNIFIED_SETTINGS.followUpBehavior ? (
@@ -1215,12 +1358,14 @@ export function ChatSettingsPanel() {
             >
               <SelectTrigger size="sm" className="w-auto min-w-0" aria-label="Follow-up behavior">
                 <SelectValue>
-                  {settings.followUpBehavior === "queue" ? "Queue" : "Steer"}
+                  {settings.followUpBehavior === "queue"
+                    ? t("Queue", "キューに追加")
+                    : t("Steer", "実行に指示")}
                 </SelectValue>
               </SelectTrigger>
               <SelectPopup align="end" alignItemWithTrigger={false}>
-                <SelectItem value="queue">Queue</SelectItem>
-                <SelectItem value="steer">Steer</SelectItem>
+                <SelectItem value="queue">{t("Queue", "キューに追加")}</SelectItem>
+                <SelectItem value="steer">{t("Steer", "実行に指示")}</SelectItem>
               </SelectPopup>
             </Select>
           }
@@ -1231,12 +1376,17 @@ export function ChatSettingsPanel() {
 }
 
 function DiffColorsSettingsRow() {
+  const t = useTranslate();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   return (
     <SettingsRow
       {...searchableSetting("diff-color-scheme")}
-      description="Choose colors for additions and deletions, including change counts."
+      title={t("Diff colors", "差分の色")}
+      description={t(
+        "Choose colors for additions and deletions, including change counts.",
+        "追加・削除の表示色を変更数も含めて選びます。",
+      )}
       resetAction={
         settings.diffColorScheme !== DEFAULT_UNIFIED_SETTINGS.diffColorScheme ? (
           <SettingResetButton
@@ -1269,12 +1419,16 @@ function DiffColorsSettingsRow() {
                 <span className="size-2 rounded-full bg-diff-addition" />
               </span>
               <SelectValue>
-                {settings.diffColorScheme === "blue-orange" ? "Blue & orange" : "Red & green"}
+                {settings.diffColorScheme === "blue-orange"
+                  ? t("Blue & orange", "青とオレンジ")
+                  : t("Red & green", "赤と緑")}
               </SelectValue>
             </SelectTrigger>
             <SelectPopup align="end" alignItemWithTrigger={false}>
-              <SelectItem value="red-green">Red & green (default)</SelectItem>
-              <SelectItem value="blue-orange">Blue & orange</SelectItem>
+              <SelectItem value="red-green">
+                {t("Red & green (default)", "赤と緑（デフォルト）")}
+              </SelectItem>
+              <SelectItem value="blue-orange">{t("Blue & orange", "青とオレンジ")}</SelectItem>
             </SelectPopup>
           </Select>
         </div>
@@ -1284,15 +1438,20 @@ function DiffColorsSettingsRow() {
 }
 
 export function DiffsSettingsPanel() {
+  const t = useTranslate();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
 
   return (
     <SettingsPageContainer>
-      <SettingsSection id="diffs" title="Diffs">
+      <SettingsSection id="diffs" title={t("Diffs", "差分")}>
         <SettingsRow
           {...searchableSetting("diff-layout")}
-          description="Show diffs stacked or side by side. The toggle in the diff toolbar changes this too."
+          title={t("Diff layout", "差分のレイアウト")}
+          description={t(
+            "Show diffs stacked or side by side. The toggle in the diff toolbar changes this too.",
+            "差分を上下または左右に表示します。差分ツールバーからも切り替えられます。",
+          )}
           resetAction={
             settings.diffLayout !== DEFAULT_UNIFIED_SETTINGS.diffLayout ? (
               <SettingResetButton
@@ -1311,14 +1470,19 @@ export function DiffsSettingsPanel() {
               }}
             >
               <SelectTrigger size="sm" className="w-full sm:w-40" aria-label="Diff layout">
-                <SelectValue>{DIFF_LAYOUT_LABELS[settings.diffLayout]}</SelectValue>
+                <SelectValue>
+                  {t(
+                    DIFF_LAYOUT_LABELS[settings.diffLayout],
+                    settings.diffLayout === "stacked" ? "上下" : "左右",
+                  )}
+                </SelectValue>
               </SelectTrigger>
               <SelectPopup align="end" alignItemWithTrigger={false}>
                 <SelectItem hideIndicator value="stacked">
-                  {DIFF_LAYOUT_LABELS.stacked}
+                  {t(DIFF_LAYOUT_LABELS.stacked, "上下")}
                 </SelectItem>
                 <SelectItem hideIndicator value="split">
-                  {DIFF_LAYOUT_LABELS.split}
+                  {t(DIFF_LAYOUT_LABELS.split, "左右")}
                 </SelectItem>
               </SelectPopup>
             </Select>
@@ -1326,7 +1490,11 @@ export function DiffsSettingsPanel() {
         />
         <SettingsRow
           {...searchableSetting("hide-whitespace-changes")}
-          description="Set whether the diff panel ignores whitespace-only edits by default."
+          title={t("Hide whitespace changes", "空白のみの変更を非表示")}
+          description={t(
+            "Set whether the diff panel ignores whitespace-only edits by default.",
+            "差分パネルで空白のみの変更を標準で無視するか設定します。",
+          )}
           resetAction={
             settings.diffIgnoreWhitespace !== DEFAULT_UNIFIED_SETTINGS.diffIgnoreWhitespace ? (
               <SettingResetButton
@@ -1351,7 +1519,11 @@ export function DiffsSettingsPanel() {
         />
         <SettingsRow
           {...searchableSetting("default-diff-file-state")}
-          description="Start with files expanded or collapsed when opening diffs or a pull request's Code tab."
+          title={t("Default diff file state", "差分ファイルの初期状態")}
+          description={t(
+            "Start with files expanded or collapsed when opening diffs or a pull request's Code tab.",
+            "差分やプルリクエストの Code タブを開いたときにファイルを展開するか選びます。",
+          )}
           resetAction={
             settings.diffFilesCollapsed !== DEFAULT_UNIFIED_SETTINGS.diffFilesCollapsed ? (
               <SettingResetButton
@@ -1378,14 +1550,18 @@ export function DiffsSettingsPanel() {
                 className="w-full sm:w-40"
                 aria-label="Default diff file state"
               >
-                <SelectValue>{settings.diffFilesCollapsed ? "Collapsed" : "Expanded"}</SelectValue>
+                <SelectValue>
+                  {settings.diffFilesCollapsed
+                    ? t("Collapsed", "折りたたむ")
+                    : t("Expanded", "展開する")}
+                </SelectValue>
               </SelectTrigger>
               <SelectPopup align="end" alignItemWithTrigger={false}>
                 <SelectItem hideIndicator value="expanded">
-                  Expanded
+                  {t("Expanded", "展開する")}
                 </SelectItem>
                 <SelectItem hideIndicator value="collapsed">
-                  Collapsed
+                  {t("Collapsed", "折りたたむ")}
                 </SelectItem>
               </SelectPopup>
             </Select>
@@ -1394,10 +1570,14 @@ export function DiffsSettingsPanel() {
         <DiffColorsSettingsRow />
       </SettingsSection>
 
-      <SettingsSection id="pull-requests" title="Pull requests">
+      <SettingsSection id="pull-requests" title={t("Pull requests", "プルリクエスト")}>
         <SettingsRow
           {...searchableSetting("proactive-panels")}
-          description="Open linked pull requests first. Otherwise, open Changes for edits to at least 3 files or 50 lines."
+          title={t("Proactive panels", "関連パネルを自動で開く")}
+          description={t(
+            "Open linked pull requests first. Otherwise, open Changes for edits to at least 3 files or 50 lines.",
+            "関連するプルリクエストがあれば先に開きます。それ以外の場合、3 ファイル以上または 50 行以上の変更があれば変更パネルを開きます。",
+          )}
           resetAction={
             settings.proactivePanelsEnabled !== DEFAULT_UNIFIED_SETTINGS.proactivePanelsEnabled ? (
               <SettingResetButton

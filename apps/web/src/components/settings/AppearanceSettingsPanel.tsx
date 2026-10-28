@@ -1,3 +1,4 @@
+import { useTranslate } from "../../i18n";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import {
@@ -70,13 +71,21 @@ function environmentIdentificationOptions(
   ];
 }
 
-const CHAT_WIDTH_LABELS: Record<ChatWidth, string> = {
-  comfortable: "Comfortable",
-  wide: "Wide",
-  full: "Full",
-};
-
 export function AppearanceSettingsPanel() {
+  const t = useTranslate();
+  const translatedIdentification: Record<string, string> = {
+    Artwork: "アートワーク",
+    "Nightly artwork": "Nightly のアートワーク",
+    "Dev artwork": "Dev のアートワーク",
+    "Version pill": "バージョン表示",
+    None: "なし",
+  };
+  const identificationLabel = (label: string) => t(label, translatedIdentification[label] ?? label);
+  const chatWidthLabels: Record<ChatWidth, string> = {
+    comfortable: t("Comfortable", "標準"),
+    wide: t("Wide", "広い"),
+    full: t("Full", "全幅"),
+  };
   const {
     appearanceMode,
     refreshTheme,
@@ -140,10 +149,14 @@ export function AppearanceSettingsPanel() {
         </div>
       </SettingsSection>
 
-      <SettingsSection id="appearance-interface" title="Interface">
+      <SettingsSection id="appearance-interface" title={t("Interface", "画面表示")}>
         <SettingsRow
           {...searchableSetting("setting-appearance-contrast")}
-          description="Adjust the contrast of colors and borders across the interface."
+          title={t("Contrast", "コントラスト")}
+          description={t(
+            "Adjust the contrast of colors and borders across the interface.",
+            "画面全体の色と境界線のコントラストを調整します。",
+          )}
           resetAction={
             settings.appearanceContrast !== DEFAULT_UNIFIED_SETTINGS.appearanceContrast ? (
               <SettingResetButton
@@ -191,7 +204,11 @@ export function AppearanceSettingsPanel() {
 
         <SettingsRow
           {...searchableSetting("setting-glass-opacity")}
-          description="Higher values make menus, dialogs, and the composer more solid."
+          title={t("Glass opacity", "背景の不透明度")}
+          description={t(
+            "Higher values make menus, dialogs, and the composer more solid.",
+            "値を大きくすると、メニュー、ダイアログ、入力欄の背景が不透明になります。",
+          )}
           resetAction={
             settings.glassOpacity !== DEFAULT_UNIFIED_SETTINGS.glassOpacity ? (
               <SettingResetButton
@@ -237,7 +254,11 @@ export function AppearanceSettingsPanel() {
 
         <SettingsRow
           {...searchableSetting("chat-width")}
-          description="Set how wide messages and the composer can grow on large screens."
+          title={t("Chat width", "チャットの幅")}
+          description={t(
+            "Set how wide messages and the composer can grow on large screens.",
+            "大画面でのメッセージと入力欄の最大幅を設定します。",
+          )}
           resetAction={
             settings.chatWidth !== DEFAULT_UNIFIED_SETTINGS.chatWidth ? (
               <SettingResetButton
@@ -256,12 +277,14 @@ export function AppearanceSettingsPanel() {
                 }}
               >
                 <SelectTrigger size="sm" className="w-full min-w-0" aria-label="Chat width">
-                  <SelectValue>{CHAT_WIDTH_LABELS[settings.chatWidth]}</SelectValue>
+                  <SelectValue>{chatWidthLabels[settings.chatWidth]}</SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
-                  <SelectItem value="comfortable">Comfortable (default)</SelectItem>
-                  <SelectItem value="wide">Wide</SelectItem>
-                  <SelectItem value="full">Full</SelectItem>
+                  <SelectItem value="comfortable">
+                    {t("Comfortable (default)", "標準（デフォルト）")}
+                  </SelectItem>
+                  <SelectItem value="wide">{t("Wide", "広い")}</SelectItem>
+                  <SelectItem value="full">{t("Full", "全幅")}</SelectItem>
                 </SelectPopup>
               </Select>
             </div>
@@ -269,7 +292,11 @@ export function AppearanceSettingsPanel() {
         />
         <SettingsRow
           {...searchableSetting("math-rendering")}
-          description="Typeset LaTeX math, such as $x^2$ or \[x^2\], in messages and Markdown previews. The composer keeps TeX source editable."
+          title={t("Render math", "数式を表示")}
+          description={t(
+            "Typeset LaTeX math, such as $x^2$ or \\[x^2\\], in messages and Markdown previews. The composer keeps TeX source editable.",
+            "メッセージと Markdown プレビューに LaTeX の数式を表示します。入力欄では TeX のソースを編集できます。",
+          )}
           resetAction={
             settings.mathRenderingEnabled !== DEFAULT_UNIFIED_SETTINGS.mathRenderingEnabled ? (
               <SettingResetButton
@@ -303,7 +330,11 @@ export function AppearanceSettingsPanel() {
         >
           <SettingsRow
             {...searchableSetting("panel-animations")}
-            description="Set how fast panels open and close."
+            title={t("Panel animations", "パネルのアニメーション")}
+            description={t(
+              "Set how fast panels open and close.",
+              "パネルを開閉する速度を設定します。",
+            )}
             control={
               <div className="grid w-full grid-cols-[5rem_minmax(0,1fr)] items-center gap-3 sm:w-auto sm:grid-cols-[7rem_13rem] sm:gap-4">
                 <PanelAnimationsPreview durationMs={settings.panelAnimationDurationMs} />
@@ -354,10 +385,17 @@ export function AppearanceSettingsPanel() {
           />
           <SettingsRow
             {...searchableSetting("environment-identification")}
+            title={t("Environment identification", "環境の識別表示")}
             description={
               environmentStageVariant
-                ? "Choose how Dev and Nightly environments are identified."
-                : "Show Dev or Nightly artwork in the sidebar header."
+                ? t(
+                    "Choose how Dev and Nightly environments are identified.",
+                    "Dev と Nightly の環境を識別する表示方法を選びます。",
+                  )
+                : t(
+                    "Show Dev or Nightly artwork in the sidebar header.",
+                    "サイドバーの上部に Dev または Nightly のアートワークを表示します。",
+                  )
             }
             resetAction={
               settings.environmentIdentificationMode !== DEFAULT_ENVIRONMENT_IDENTIFICATION_MODE ? (
@@ -386,12 +424,12 @@ export function AppearanceSettingsPanel() {
                   className="w-full sm:w-40"
                   aria-label="Environment identification"
                 >
-                  <SelectValue>{environmentIdentificationLabel}</SelectValue>
+                  <SelectValue>{identificationLabel(environmentIdentificationLabel)}</SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
                   {environmentIdentificationOptionList.map(([value, label]) => (
                     <SelectItem hideIndicator key={value} value={value}>
-                      {label}
+                      {identificationLabel(label)}
                     </SelectItem>
                   ))}
                 </SelectPopup>
@@ -400,7 +438,11 @@ export function AppearanceSettingsPanel() {
           />
           <SettingsRow
             {...searchableSetting("composer-context")}
-            description="Keep branch and worktree controls below the composer after a thread starts."
+            title={t("Composer context", "入力欄の情報")}
+            description={t(
+              "Keep branch and worktree controls below the composer after a thread starts.",
+              "スレッドの開始後も、入力欄の下にブランチとワークツリーの操作を表示します。",
+            )}
             resetAction={
               settings.persistComposerContextStrip !==
               DEFAULT_UNIFIED_SETTINGS.persistComposerContextStrip ? (

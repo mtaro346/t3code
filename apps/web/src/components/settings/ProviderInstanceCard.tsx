@@ -1,3 +1,4 @@
+import { useTranslate } from "~/i18n";
 import { Spinner } from "~/components/ui/spinner";
 
 import {
@@ -630,6 +631,7 @@ export function ProviderInstanceCard({
   projectOverride,
 }: ProviderInstanceCardProps) {
   const enabled = projectOverride?.effectiveEnabled ?? resolveProviderInstanceEnabled(instance);
+  const t = useTranslate();
   const effectiveProvider = liveProvider && { ...liveProvider, enabled };
   const compatibility = enabled ? liveProvider?.compatibilityAdvisory : undefined;
   const statusKey = enabled ? getProviderStatusKey(effectiveProvider) : "disabled";
@@ -637,6 +639,22 @@ export function ProviderInstanceCard({
   const summary = enabled
     ? getProviderSummary(effectiveProvider)
     : { headline: "Disabled", detail: null };
+  const [statusHeadline, ...statusSuffix] = summary.headline.split(" · ");
+  const translatedHeadlines: Record<string, string> = {
+    "Checking provider status": "プロバイダーの状態を確認中",
+    Disabled: "無効",
+    "Not found": "見つかりません",
+    "Not authenticated": "未認証",
+    Installed: "インストール済み",
+    "Needs attention": "要確認",
+    Unavailable: "利用不可",
+    Authenticated: "認証済み",
+    Available: "利用可能",
+  };
+  const translatedHeadline = t(
+    summary.headline,
+    [translatedHeadlines[statusHeadline ?? ""] ?? statusHeadline, ...statusSuffix].join(" · "),
+  );
   const authEmail = liveProvider?.auth.email?.trim();
   const isAuthenticated = enabled && liveProvider?.auth.status === "authenticated";
   const authLabel =
@@ -832,7 +850,7 @@ export function ProviderInstanceCard({
     isAuthenticated && authEmail ? (
       <>
         {needsAttention ? statusDotNode : null}
-        <span>Authenticated as</span>
+        <span>{t("Authenticated as", "認証済み:")}</span>
         <ProviderAuthEmail email={authEmail} />
         {authLabel ? <span>· {authLabel}</span> : null}
         {inlineStatusDetail ? (
@@ -842,7 +860,7 @@ export function ProviderInstanceCard({
     ) : (
       <>
         {statusDotNode}
-        <span>{summary.headline}</span>
+        <span>{translatedHeadline}</span>
         {inlineStatusDetail ? (
           <span className="min-w-0 [overflow-wrap:anywhere]">· {inlineStatusDetail}</span>
         ) : null}
@@ -1007,7 +1025,7 @@ export function ProviderInstanceCard({
                     `Updating · ${updateProgress}`
                   ) : (
                     <>
-                      {summary.headline}
+                      {translatedHeadline}
                       {needsAttention && inlineStatusDetail ? ` · ${inlineStatusDetail}` : null}
                     </>
                   )}
@@ -1104,7 +1122,7 @@ export function ProviderInstanceCard({
             disabled={readOnly}
           >
             <ExternalLinkIcon />
-            Continue authentication
+            {t("Continue authentication", "認証を続ける")}
           </Button>
         </div>
       ) : null}
@@ -1121,7 +1139,7 @@ export function ProviderInstanceCard({
     />
   ) : (
     <SettingsRow
-      title="Driver"
+      title={t("Driver", "ドライバー")}
       description={
         <span>
           This instance uses <code className="text-foreground">{String(instance.driver)}</code>,
@@ -1134,9 +1152,9 @@ export function ProviderInstanceCard({
   return (
     <>
       <SettingsSection title={displayName} icon={titleIconNode} headerAction={editorHeaderAction}>
-        <SettingsRow title="Status" status={statusContent} />
+        <SettingsRow title={t("Status", "状態")} status={statusContent} />
         <SettingsRow
-          title="Display name"
+          title={t("Display name", "表示名")}
           control={
             <div
               inert={readOnly}
@@ -1158,7 +1176,7 @@ export function ProviderInstanceCard({
                 className="min-w-0 flex-1 @min-[32rem]/settings-row:w-56"
                 value={instance.displayName ?? ""}
                 onCommit={updateDisplayName}
-                placeholder={driverOption?.label ?? "Instance label"}
+                placeholder={driverOption?.label ?? t("Instance label", "インスタンス名")}
                 spellCheck={false}
               />
             </div>
@@ -1167,7 +1185,7 @@ export function ProviderInstanceCard({
       </SettingsSection>
 
       {setup || environmentFields.length > 0 ? (
-        <SettingsSection title="Setup">
+        <SettingsSection title={t("Setup", "セットアップ")}>
           {setup}
           {environmentFields.length > 0 ? (
             <div
@@ -1199,7 +1217,7 @@ export function ProviderInstanceCard({
           <FoldedSettingsSection
             key={instanceId}
             id={`provider-instance-${instanceId}-runtime`}
-            title="Runtime"
+            title={t("Runtime", "ランタイム")}
             headerPlacement="outside"
           >
             {runtime ?? runtimeFields}
@@ -1207,7 +1225,7 @@ export function ProviderInstanceCard({
         </div>
       ) : !driverOption || deriveProviderSettingsFields(driverOption).length > 0 ? (
         <SettingsSection
-          title="Runtime"
+          title={t("Runtime", "ランタイム")}
           inert={readOnly}
           aria-disabled={readOnly || undefined}
           className={readOnly ? "opacity-50 select-none" : undefined}
@@ -1217,7 +1235,7 @@ export function ProviderInstanceCard({
       ) : null}
 
       <SettingsSection
-        title="Environment"
+        title={t("Environment", "環境変数")}
         inert={readOnly}
         aria-disabled={readOnly || undefined}
         className={readOnly ? "opacity-50 select-none" : undefined}
@@ -1238,11 +1256,13 @@ export function ProviderInstanceCard({
       ) : null}
 
       {driverOption !== undefined ? (
-        <SettingsSection title="Models">
+        <SettingsSection title={t("Models", "モデル")}>
           <div className="px-3 py-3 sm:px-4">
             <p className="mb-3 text-xs text-muted-foreground">
-              Model preferences and custom models are saved on the selected environment and shared
-              across connected devices.
+              {t(
+                "Model preferences and custom models are saved on the selected environment and shared across connected devices.",
+                "モデルの設定とカスタムモデルは選択した環境に保存され、接続されたデバイス間で共有されます。",
+              )}
             </p>
             <ProviderModelsSection
               canManageCustomModels={!readOnly}

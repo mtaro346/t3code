@@ -1,3 +1,4 @@
+import { useTranslate } from "~/i18n";
 import { ArrowDownIcon, ArrowUpIcon, PencilIcon, PlusIcon, StarIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -127,6 +128,7 @@ export function ProviderModelsSection({
   onModelOrderChange,
 }: ProviderModelsSectionProps) {
   const [input, setInput] = useState("");
+  const t = useTranslate();
   const [isAdding, setIsAdding] = useState(false);
   const [filter, setFilter] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -298,11 +300,11 @@ export function ProviderModelsSection({
           <Input
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
-            placeholder="Filter models"
+            placeholder={t("Filter models", "モデルを絞り込み")}
             size="sm"
             className="w-56 max-w-full"
             spellCheck={false}
-            aria-label="Filter models"
+            aria-label={t("Filter models", "モデルを絞り込み")}
           />
         ) : null}
         <div className="flex items-center gap-2">
@@ -318,7 +320,9 @@ export function ProviderModelsSection({
                 )
               }
             >
-              {allBuiltInModelsHidden ? "Enable all" : "Disable all"}
+              {allBuiltInModelsHidden
+                ? t("Enable all", "すべて有効")
+                : t("Disable all", "すべて無効")}
             </Button>
           ) : null}
           <span className="text-xs text-muted-foreground">
@@ -349,7 +353,12 @@ export function ProviderModelsSection({
       >
         {visibleModels.length === 0 ? (
           <p className="px-2 py-2 text-xs text-muted-foreground">
-            {isFiltering ? "No models match." : "No models reported for this provider yet."}
+            {isFiltering
+              ? t("No models match.", "一致するモデルがありません。")
+              : t(
+                  "No models reported for this provider yet.",
+                  "このプロバイダーのモデルはまだありません。",
+                )}
           </p>
         ) : null}
         {visibleModels.map((model, index) => {
@@ -363,13 +372,13 @@ export function ProviderModelsSection({
           return (
             <div key={`${instanceId}:${model.slug}:group`}>
               {startsGroup && favoriteCount > 0 && group === "favorite"
-                ? groupLabel("Favorites", index === 0)
+                ? groupLabel(t("Favorites", "お気に入り"), index === 0)
                 : null}
               {startsGroup && favoriteCount > 0 && group === "visible"
                 ? groupLabel("All", index === 0)
                 : null}
               {startsGroup && group === "hidden"
-                ? groupLabel("Hidden from picker", index === 0)
+                ? groupLabel(t("Hidden from picker", "選択肢に表示しない"), index === 0)
                 : null}
               {renderRow(model)}
               {editingEntry ? (

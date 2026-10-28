@@ -1,3 +1,4 @@
+import { useTranslate } from "~/i18n";
 import { memo, type MouseEventHandler, type PointerEventHandler } from "react";
 import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, Minimize2Icon, PlayIcon } from "lucide-react";
 import { CornerUpRight, ListPlus } from "lucide";
@@ -59,17 +60,21 @@ const formatPendingPrimaryActionLabel = (input: {
   isLastQuestion: boolean;
   isResponding: boolean;
   questionIndex: number;
+  t: (english: string, japanese: string) => string;
 }) => {
+  const { t } = input;
   if (input.isResponding) {
-    return "Submitting...";
+    return t("Submitting...", "送信中...");
   }
   if (input.compact) {
-    return input.isLastQuestion ? "Submit" : "Next";
+    return input.isLastQuestion ? t("Submit", "送信") : t("Next", "次へ");
   }
   if (!input.isLastQuestion) {
-    return "Next question";
+    return t("Next question", "次の質問");
   }
-  return input.questionIndex > 0 ? "Submit answers" : "Submit answer";
+  return input.questionIndex > 0
+    ? t("Submit answers", "回答を送信")
+    : t("Submit answer", "回答を送信");
 };
 
 const messageActionPillClassName =
@@ -107,6 +112,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
   keepFullHistory = false,
   onToggleKeepFullHistory,
 }: ComposerPrimaryActionsProps) {
+  const t = useTranslate();
   const pointerFocusProps = preserveComposerFocusOnPointerDown
     ? { onPointerDown: preventPointerFocus }
     : undefined;
@@ -139,7 +145,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
             onClick={() => {
               if (canOperateThread) onInterrupt();
             }}
-            aria-label="Stop generation"
+            aria-label={t("Stop generation", "生成を停止")}
           />
         }
       >
@@ -147,7 +153,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           <rect x="2" y="2" width="8" height="8" rx="1.5" />
         </svg>
       </TooltipTrigger>
-      <TooltipPopup>Interrupt</TooltipPopup>
+      <TooltipPopup>{t("Interrupt", "中断")}</TooltipPopup>
     </Tooltip>
   );
 
@@ -163,7 +169,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
               {...pointerFocusProps}
               onClick={onPreviousPendingQuestion}
               disabled={pendingAction.isResponding}
-              aria-label="Previous question"
+              aria-label={t("Previous question", "前の質問")}
             >
               <ChevronLeftIcon className="size-3.5" />
             </Button>
@@ -175,7 +181,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
               onClick={onPreviousPendingQuestion}
               disabled={pendingAction.isResponding}
             >
-              Previous
+              {t("Previous", "前へ")}
             </Button>
           )
         ) : null}
@@ -195,6 +201,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
             isLastQuestion: pendingAction.isLastQuestion,
             isResponding: pendingAction.isResponding,
             questionIndex: pendingAction.questionIndex,
+            t,
           })}
         </button>
       </div>
@@ -210,7 +217,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           {...pointerFocusProps}
           disabled={isSendBusy || isSendDisabled || isEnvironmentUnavailable}
         >
-          {isSendBusy ? "Sending..." : "Refine"}
+          {isSendBusy ? t("Sending...", "送信中...") : t("Refine", "改善")}
         </button>
       );
     }
@@ -223,7 +230,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
           {...pointerFocusProps}
           disabled={isSendBusy || isSendDisabled || isEnvironmentUnavailable}
         >
-          {isSendBusy ? "Sending..." : "Implement"}
+          {isSendBusy ? t("Sending...", "送信中...") : t("Implement", "実行")}
         </button>
         <Menu>
           <MenuTrigger
@@ -234,7 +241,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
                   messageActionPillClassName,
                   "h-9 rounded-l-none border-l border-message-action-foreground/20 px-2 sm:h-8",
                 )}
-                aria-label="Implementation actions"
+                aria-label={t("Implementation actions", "実行の操作")}
                 onMouseDown={
                   preserveComposerFocusOnPointerDown ? (event) => event.preventDefault() : undefined
                 }
@@ -251,7 +258,7 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
                 if (canOperateThread) onImplementPlanInNewThread();
               }}
             >
-              Implement in a new thread
+              {t("Implement in a new thread", "新しいスレッドで実行")}
             </MenuItem>
           </MenuPopup>
         </Menu>
@@ -272,25 +279,25 @@ export const ComposerPrimaryActions = memo(function ComposerPrimaryActions({
   const compactsBeforeSend = compactTokens !== null && !keepFullHistory;
 
   const submitLabel = showResume
-    ? "Resume thread"
+    ? t("Resume thread", "スレッドを再開")
     : isEditingQueuedMessage
-      ? "Update queued message"
+      ? t("Update queued message", "待機中のメッセージを更新")
       : compactsBeforeSend
-        ? "Compact and send"
+        ? t("Compact and send", "履歴を圧縮して送信")
         : isQueuing
-          ? "Queue message"
+          ? t("Queue message", "メッセージを予約")
           : isRunning
-            ? "Steer message"
-            : "Submit message";
+            ? t("Steer message", "メッセージで指示")
+            : t("Submit message", "メッセージを送信");
   const submitStatus = isEnvironmentUnavailable
-    ? "Environment disconnected"
+    ? t("Environment disconnected", "環境が切断されています")
     : (sendDisabledReason ??
       (isPreparingWorktree
-        ? "Preparing worktree"
+        ? t("Preparing worktree", "ワークツリーを準備中")
         : isSendBusy
           ? isEditingQueuedMessage
-            ? "Updating queued message"
-            : "Submitting message"
+            ? t("Updating queued message", "待機中のメッセージを更新中")
+            : t("Submitting message", "メッセージを送信中")
           : null));
   const submitTooltip =
     submitStatus ??

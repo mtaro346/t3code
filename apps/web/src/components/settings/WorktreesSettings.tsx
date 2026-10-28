@@ -1,3 +1,4 @@
+import { useTranslate } from "../../i18n";
 import { DEFAULT_UNIFIED_SETTINGS } from "@t3tools/contracts/settings";
 
 import { AdvancedSettings } from "./AdvancedSettings";
@@ -16,6 +17,7 @@ import { WorktreeCleanupSection, WorktreesDirectoryRow } from "./StorageSettings
 import { useScopedSettings, useUpdateScopedSettings } from "./useScopedSettings";
 
 function StartFromRemoteRow() {
+  const t = useTranslate();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   return (
@@ -23,7 +25,11 @@ function StartFromRemoteRow() {
       serverScoped
       settingKeys={["newWorktreesStartFromOrigin"]}
       {...searchableSetting("start-from-origin")}
-      description="Uses the latest commit of the base branch’s tracked remote branch, even if its name differs. Otherwise uses the same-named branch on origin. Uses your local branch if that remote branch is missing."
+      title={t("Start from remote", "リモートから開始")}
+      description={t(
+        "Uses the latest commit of the base branch’s tracked remote branch, even if its name differs. Otherwise uses the same-named branch on origin. Uses your local branch if that remote branch is missing.",
+        "ベースブランチが追跡するリモートブランチの最新コミットを使用します。追跡先がない場合は origin の同名ブランチを使用し、それもない場合はローカルブランチを使用します。",
+      )}
       resetAction={
         settings.newWorktreesStartFromOrigin !==
         DEFAULT_UNIFIED_SETTINGS.newWorktreesStartFromOrigin ? (
@@ -44,7 +50,10 @@ function StartFromRemoteRow() {
           onCheckedChange={(checked) =>
             updateSettings({ newWorktreesStartFromOrigin: Boolean(checked) })
           }
-          aria-label="Start new worktrees from remote by default"
+          aria-label={t(
+            "Start new worktrees from remote by default",
+            "新しいワークツリーをリモートから開始",
+          )}
         />
       }
     />
@@ -52,19 +61,20 @@ function StartFromRemoteRow() {
 }
 
 export function WorktreesSettingsPanel() {
+  const t = useTranslate();
   const { scope } = useSettingsScope();
   const isProjectScope = scope.kind === "project" || scope.kind === "checkout";
 
   return (
     <SettingsPageContainer>
-      <SettingsSection id="worktree-creation" title="Creation">
+      <SettingsSection id="worktree-creation" title={t("Creation", "作成")}>
         {!isProjectScope && <WorktreesDirectoryRow />}
         <StartFromRemoteRow />
         <AdvancedSettings targetIds={[searchableSetting("worktree-submodules").id]}>
           <WorktreeSubmodulesRow />
         </AdvancedSettings>
       </SettingsSection>
-      <SettingsSection id="worktree-branches" title="Branches">
+      <SettingsSection id="worktree-branches" title={t("Branches", "ブランチ")}>
         <BranchNamingSettings />
       </SettingsSection>
       <WorktreeCleanupSection />

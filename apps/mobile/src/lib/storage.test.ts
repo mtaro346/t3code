@@ -110,11 +110,12 @@ describe("mobile connection storage", () => {
     const navigationTabOrder = ["usage", "threads", "pullRequests"];
     const hiddenNavigationTabs = ["issues", "home"];
     await savePreferencesPatch({ navigationTabOrder, hiddenNavigationTabs });
-    await savePreferencesPatch({ baseFontSize: 19 });
+    await savePreferencesPatch({ baseFontSize: 19, language: "ja" });
     await expect(loadPreferences()).resolves.toEqual({
       navigationTabOrder,
       hiddenNavigationTabs,
       baseFontSize: 19,
+      language: "ja",
     });
   });
 
@@ -124,6 +125,7 @@ describe("mobile connection storage", () => {
         navigationTabOrder: ["usage", null, 4, "threads"],
         hiddenNavigationTabs: ["home", null],
         baseFontSize: 18,
+        language: "invalid",
       }),
       1,
     );

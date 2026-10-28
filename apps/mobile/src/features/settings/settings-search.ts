@@ -33,6 +33,10 @@ const SETTINGS_SEARCH_TERMS = {
   SettingsScheduledTasks: ["automations", "schedule", "cron", "recurring", "webhook"],
   SettingsProjectOverview: ["project", "overview", "checkouts", "delete project"],
   SettingsOrganization: [
+    "language",
+    "display language",
+    "表示言語",
+    "日本語",
     "project grouping",
     "group projects",
     "organization",
@@ -117,7 +121,11 @@ export interface SettingsSearchSection<Row extends SettingsSearchRow> {
 export function filterSettingsSections<
   Row extends SettingsSearchRow,
   Section extends SettingsSearchSection<Row>,
->(sections: readonly Section[], query: string): Section[] {
+>(
+  sections: readonly Section[],
+  query: string,
+  translate: (label: string) => string = (label) => label,
+): Section[] {
   const normalizedQuery = foldSearchQuery(query);
   const rows = sections.flatMap((section) =>
     section.rows.map((row) => ({ row, section: section.title })),
@@ -127,7 +135,12 @@ export function filterSettingsSections<
         rankSearchItems(rows, ({ row, section }, options) =>
           scoreSearchTerms(
             normalizedQuery,
-            [row.label, ...(section ? [section] : []), ...(termsById.get(row.id) ?? [])],
+            [
+              row.label,
+              translate(row.label),
+              ...(section ? [section, translate(section)] : []),
+              ...(termsById.get(row.id) ?? []),
+            ],
             options,
           ),
         ).map(({ item }) => item.row),

@@ -1,3 +1,4 @@
+import { useTranslate } from "../../lib/i18n";
 import { useSidebarWorkspaceTabs } from "../workspace/useSystemWorkspaceTabBar";
 import { Button } from "../../components/ui/Button";
 import * as Dialog from "../../components/ui/Dialog";
@@ -300,6 +301,7 @@ function SendActionButton(props: {
   readonly disabled: boolean;
   readonly onSend: (followUp?: ActiveTurnComposerAction) => void;
 }) {
+  const t = useTranslate();
   const { presentation } = props;
   const button = (
     <ComposerActionButton
@@ -319,12 +321,22 @@ function SendActionButton(props: {
   );
   return (
     <Menu
-      accessibilityLabel="Choose how to send this message"
+      accessibilityLabel={t("Choose how to send this message", "メッセージの送信方法を選択")}
       shouldOpenOnLongPress
       actions={actions.map((action) => ({
         id: action,
-        title: FOLLOW_UP_ACTION_LABEL[action],
-        subtitle: FOLLOW_UP_ACTION_SUBTITLE[action],
+        title: t(
+          FOLLOW_UP_ACTION_LABEL[action],
+          { queue: "キューに追加", steer: "すぐに指示", restart: "ターンを再開" }[action],
+        ),
+        subtitle: t(
+          FOLLOW_UP_ACTION_SUBTITLE[action],
+          {
+            queue: "現在のターンが終わってから実行",
+            steer: "エージェントの作業を中断",
+            restart: "このメッセージでターンをやり直す",
+          }[action],
+        ),
         state: action === presentation.action ? ("on" as const) : ("off" as const),
       }))}
       onPressAction={({ nativeEvent }) =>
@@ -401,6 +413,7 @@ function ComposerSurface(props: {
 export const THREAD_COMPOSER_BOTTOM_GUTTER = 6;
 
 export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps) {
+  const t = useTranslate();
   const project = useProject(scopeProjectRef(props.environmentId, props.selectedThread.projectId));
   const { themeVariables: materialTheme } = useAppearancePreferences();
   const composerPanel = materialTheme["--color-composer-panel"];
@@ -475,7 +488,18 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
     deliveryDeferred:
       props.connectionState !== "connected" || props.queueCount > 0 || attachmentsUploading,
   });
-  const sendLabel = sendPresentation.label;
+  const sendLabel = t(
+    sendPresentation.label,
+    (
+      {
+        "Update queued message": "キュー内のメッセージを更新",
+        Queue: "キューに追加",
+        Send: "送信",
+        Steer: "指示",
+        Restart: "再開",
+      } as Record<string, string>
+    )[sendPresentation.label] ?? sendPresentation.label,
+  );
   const currentModelSelection = props.selectedThread.modelSelection;
   const modelUnavailable =
     props.connectionState === "connected" &&
@@ -947,7 +971,7 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
                 {showStopAction ? (
                   <ComposerActionButton
                     size={usesLargeControls ? "large" : "regular"}
-                    accessibilityLabel="Stop agent"
+                    accessibilityLabel={t("Stop agent", "エージェントを停止")}
                     icon="stop.fill"
                     variant="danger"
                     disabled={!props.canOperateThread}
@@ -956,7 +980,7 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
                 ) : showResumeAction ? (
                   <ComposerActionButton
                     size={usesLargeControls ? "large" : "regular"}
-                    accessibilityLabel="Resume queue"
+                    accessibilityLabel={t("Resume queue", "キューを再開")}
                     icon="play"
                     disabled={!props.canOperateThread || resumingQueue}
                     onPress={() => void handleResumeQueue()}
@@ -1093,11 +1117,16 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
                       : undefined,
                   )
                 }
-                submitTitle={sendPresentation.label}
+                submitTitle={sendLabel}
                 alternateSubmitTitle={
                   sendPresentation.alternate === null
-                    ? sendPresentation.label
-                    : FOLLOW_UP_ACTION_LABEL[sendPresentation.alternate]
+                    ? sendLabel
+                    : t(
+                        FOLLOW_UP_ACTION_LABEL[sendPresentation.alternate],
+                        { queue: "キューに追加", steer: "すぐに指示", restart: "ターンを再開" }[
+                          sendPresentation.alternate
+                        ],
+                      )
                 }
                 {...compactEditor.editorProps}
                 textStyle={{
@@ -1150,7 +1179,7 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
                   {showStopAction ? (
                     <ComposerActionButton
                       size={usesLargeControls ? "large" : "regular"}
-                      accessibilityLabel="Stop agent"
+                      accessibilityLabel={t("Stop agent", "エージェントを停止")}
                       icon="stop.fill"
                       variant="danger"
                       disabled={!props.canOperateThread}
@@ -1159,7 +1188,7 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
                   ) : showResumeAction && voicePresentation.showsSend ? (
                     <ComposerActionButton
                       size={usesLargeControls ? "large" : "regular"}
-                      accessibilityLabel="Resume queue"
+                      accessibilityLabel={t("Resume queue", "キューを再開")}
                       icon="play"
                       disabled={!props.canOperateThread || resumingQueue}
                       onPress={() => void handleResumeQueue()}

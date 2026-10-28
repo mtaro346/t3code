@@ -1,3 +1,4 @@
+import { translateSettingsLabel, useTranslate } from "../../lib/i18n";
 import { WorkspaceNoTabs } from "./WorkspaceNoTabs";
 import { WORKSPACE_TAB_LABELS, useEnabledNavigationTabs } from "./navigation-tabs";
 import { WorkspaceExtraTab } from "./WorkspaceExtraTab";
@@ -53,14 +54,14 @@ function WorkspaceRootTitle(props: {
   readonly columnWidth: number;
   readonly onOpenEnvironments: () => void;
 }) {
+  const t = useTranslate();
   const { state, settingsOpen } = useWorkspaceTabs()!;
   const maxWidth = Math.max(0, props.columnWidth - (use(HeaderItemsWidthContext) ?? 160));
   const enabled = useEnabledNavigationTabs();
-  const tabTitle = settingsOpen
-    ? "Settings"
-    : enabled.length
-      ? TAB_TITLES[state.selectedTab]
-      : "Navigation";
+  const tabTitle = translateSettingsLabel(
+    t,
+    settingsOpen ? "Settings" : enabled.length ? TAB_TITLES[state.selectedTab] : "Navigation",
+  );
   return (
     <View style={{ width: maxWidth, minHeight: 32, justifyContent: "center" }}>
       <WorkspaceConnectionTitle
@@ -73,6 +74,7 @@ function WorkspaceRootTitle(props: {
 }
 
 function WorkspaceRootContent() {
+  const t = useTranslate();
   const navigation = useNavigation();
   const selectTab = useSelectWorkspaceTab();
   const { width: windowWidth } = useWindowDimensions();
@@ -141,13 +143,17 @@ function WorkspaceRootContent() {
               width,
               sidebarNavigation,
               enabled.length,
+              t,
             ]}
             options={{
-              title: settingsOpen
-                ? "Settings"
-                : enabled.length
-                  ? TAB_TITLES[state.selectedTab]
-                  : "Navigation",
+              title: translateSettingsLabel(
+                t,
+                settingsOpen
+                  ? "Settings"
+                  : enabled.length
+                    ? TAB_TITLES[state.selectedTab]
+                    : "Navigation",
+              ),
               headerShown: true,
               headerTransparent: NATIVE_LIQUID_GLASS_SUPPORTED,
               headerStyle: NATIVE_LIQUID_GLASS_SUPPORTED
@@ -175,7 +181,9 @@ function WorkspaceRootContent() {
                 ? [
                     {
                       accessibilityLabel:
-                        state.selectedTab === "threads" ? "Search threads" : "Search pull requests",
+                        state.selectedTab === "threads"
+                          ? t("Search threads", "スレッドを検索")
+                          : t("Search pull requests", "プルリクエストを検索"),
                       icon: "magnifyingglass" as const,
                       onPress: () => {
                         dispatchHardwareKeyboardCommand("focusSearch");
@@ -184,7 +192,7 @@ function WorkspaceRootContent() {
                   ]
                 : []),
               {
-                accessibilityLabel: "Settings",
+                accessibilityLabel: t("Settings", "設定"),
                 icon: "gearshape",
                 onPress: () => selectTab("settings"),
               },

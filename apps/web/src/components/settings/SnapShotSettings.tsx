@@ -1,3 +1,4 @@
+import { useTranslate } from "../../i18n";
 import { RegistryContext, useAtomValue } from "@effect/atom-react";
 import {
   isModifierPairShortcut,
@@ -79,6 +80,7 @@ type ShortcutCheck =
     };
 
 export function SnapShotSettings() {
+  const t = useTranslate();
   const settings = useClientSettings((current) => ({
     snapShotAnimations: current.snapShotAnimations,
     snapShotEnabled: current.snapShotEnabled,
@@ -350,10 +352,11 @@ export function SnapShotSettings() {
 
   return (
     <SettingsPageContainer>
-      <SettingsSection id="snap-shot" title="SnapShots">
+      <SettingsSection id="snap-shot" title={t("SnapShots", "スナップショット")}>
         <SettingsUnavailableGroup message={unavailableMessage}>
           <SettingsRow
             {...searchableSetting("snap-shot-enabled")}
+            title={t("SnapShots", "スナップショット")}
             description={snapShotDescription(state)}
             status={
               bridge
@@ -394,7 +397,11 @@ export function SnapShotSettings() {
             <>
               <SettingsRow
                 {...searchableSetting("snap-shot-accessibility")}
-                description="Include text and controls when the app makes them available."
+                title={t("Include app text", "アプリ内のテキストを含める")}
+                description={t(
+                  "Include text and controls when the app makes them available.",
+                  "アプリが提供するテキストや操作項目を含めます。",
+                )}
                 status={snapShotAccessibilityUnavailableMessage(state)}
                 control={
                   <Switch
@@ -412,10 +419,17 @@ export function SnapShotSettings() {
               />
               <SettingsRow
                 {...searchableSetting("snap-shot-shortcut")}
+                title={t("Capture shortcut", "キャプチャのショートカット")}
                 description={
                   state?.linuxBackend === "picker"
-                    ? "Choose a window to capture from any app."
-                    : "Capture the window you're using without switching apps."
+                    ? t(
+                        "Choose a window to capture from any app.",
+                        "任意のアプリからキャプチャするウィンドウを選びます。",
+                      )
+                    : t(
+                        "Capture the window you're using without switching apps.",
+                        "アプリを切り替えずに使用中のウィンドウをキャプチャします。",
+                      )
                 }
                 status={managedShortcut ? undefined : shortcutStatus}
                 control={
@@ -426,7 +440,7 @@ export function SnapShotSettings() {
                       disabled={setupBusy}
                       onClick={() => void openSetup("shortcut")}
                     >
-                      Change shortcut
+                      {t("Change shortcut", "ショートカットを変更")}
                     </Button>
                   ) : (
                     <>
@@ -438,7 +452,7 @@ export function SnapShotSettings() {
                             disabled={!canSaveShortcut || setupBusy}
                             onClick={() => void saveShortcut()}
                           >
-                            {setupBusy ? "Saving…" : "Save"}
+                            {setupBusy ? t("Saving…", "保存中…") : t("Save", "保存")}
                           </Button>
                           <Button
                             size="xs"
@@ -451,7 +465,7 @@ export function SnapShotSettings() {
                               setShortcutCheck({ status: "idle", availability: null });
                             }}
                           >
-                            Cancel
+                            {t("Cancel", "キャンセル")}
                           </Button>
                         </>
                       ) : state?.mode === "portal" &&
@@ -463,7 +477,7 @@ export function SnapShotSettings() {
                           disabled={setupBusy || state.shortcutPending}
                           onClick={() => void setup("retry-shortcut")}
                         >
-                          Shortcut permissions
+                          {t("Shortcut permissions", "ショートカットの権限")}
                         </Button>
                       ) : null}
                     </>
@@ -472,7 +486,11 @@ export function SnapShotSettings() {
               />
               <SettingsRow
                 {...searchableSetting("snap-shot-sound")}
-                description="Choose the sound played when capture starts."
+                title={t("Capture sound", "キャプチャ音")}
+                description={t(
+                  "Choose the sound played when capture starts.",
+                  "キャプチャ開始時のサウンドを選びます。",
+                )}
                 control={
                   <Menu>
                     <MenuTrigger
@@ -482,7 +500,7 @@ export function SnapShotSettings() {
                       disabled={!captureAvailable}
                     >
                       {soundSelection === "off" ? (
-                        "Off"
+                        t("Off", "オフ")
                       ) : soundSelection === "soft-pop" ? (
                         <>
                           Whoosh <span className="text-muted-foreground">(Default)</span>
@@ -499,7 +517,7 @@ export function SnapShotSettings() {
                         value={soundSelection}
                       >
                         <MenuRadioItem closeOnClick value="off">
-                          Off
+                          {t("Off", "オフ")}
                         </MenuRadioItem>
                         <div className={soundOptionRowClassName}>
                           <MenuRadioItem closeOnClick value="soft-pop">
@@ -532,7 +550,11 @@ export function SnapShotSettings() {
               />
               <SettingsRow
                 {...searchableSetting("snap-shot-flash")}
-                description="Show a gentle cue on the captured window."
+                title={t("Capture flash", "キャプチャ時の点滅")}
+                description={t(
+                  "Show a gentle cue on the captured window.",
+                  "キャプチャしたウィンドウに控えめな合図を表示します。",
+                )}
                 status={feedbackUnavailable}
                 control={
                   <Switch
@@ -545,7 +567,11 @@ export function SnapShotSettings() {
               />
               <SettingsRow
                 {...searchableSetting("snap-shot-animations")}
-                description="Animate captured windows into your draft."
+                title={t("Capture animations", "キャプチャのアニメーション")}
+                description={t(
+                  "Animate captured windows into your draft.",
+                  "キャプチャしたウィンドウを下書きに追加するときにアニメーションを表示します。",
+                )}
                 status={feedbackUnavailable}
                 control={
                   <Switch

@@ -4,6 +4,7 @@ import {
   makeProviderSettingsSchema,
   SourceControlProviderKind,
 } from "@t3tools/contracts";
+import { settingsLabel } from "./settingsTranslations";
 import { UNKNOWN_SOURCE_CONTROL_CLIENT } from "@t3tools/client-runtime/source-control-clients";
 import * as Schema from "effect/Schema";
 
@@ -58,6 +59,23 @@ describe("searchSettings", () => {
     expect(searchSettings("sharing", ITEMS).map((item) => item.id)).toEqual(["network-access"]);
     expect(searchSettings("claude", ITEMS).map((item) => item.id)).toEqual(["providers"]);
     expect(searchSettings("long lines", ITEMS).map((item) => item.id)).toEqual(["word-wrap"]);
+  });
+
+  it("finds translated titles and sections while retaining English search", () => {
+    const translate = (label: string) => settingsLabel((_english, japanese) => japanese, label);
+
+    expect(searchSettings("表示言語", SETTINGS_SEARCH_ITEMS, translate)[0]?.id).toBe(
+      "display-language",
+    );
+    expect(searchSettings("language", SETTINGS_SEARCH_ITEMS, translate)[0]?.id).toBe(
+      "display-language",
+    );
+    expect(searchSettings("ネットワーク", ITEMS, translate).map((item) => item.id)).toEqual([
+      "network-access",
+    ]);
+    expect(searchSettings("共有", ITEMS, translate).map((item) => item.id)).toEqual([
+      "network-access",
+    ]);
   });
 
   it("matches normalized title substrings", () => {

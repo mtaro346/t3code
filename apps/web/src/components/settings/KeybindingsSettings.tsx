@@ -1,3 +1,4 @@
+import { useTranslate } from "../../i18n";
 import { useEnvironmentScope } from "../../state/session";
 import { useEnvironmentsWithScope, readEnvironmentScope } from "../../state/session";
 import {
@@ -118,6 +119,7 @@ function KeybindingsSearchInput({
   onChange: (next: string) => void;
   inputRef: RefObject<HTMLInputElement | null>;
 }) {
+  const t = useTranslate();
   return (
     <InputGroup className="min-w-0 basis-full **:[input]:h-9 sm:basis-0 sm:flex-1 sm:**:[input]:h-8">
       <InputGroupAddon>
@@ -134,8 +136,8 @@ function KeybindingsSearchInput({
           if (query.length > 0) onChange("");
           else event.currentTarget.blur();
         }}
-        placeholder="Search keybindings"
-        aria-label="Search keybindings"
+        placeholder={t("Search keybindings", "キーバインドを検索")}
+        aria-label={t("Search keybindings", "キーバインドを検索")}
         size="sm"
       />
     </InputGroup>
@@ -790,6 +792,7 @@ function KeybindingKeyControl({
   isSaving: boolean;
   pillClassName?: string | undefined;
 }) {
+  const t = useTranslate();
   const { keyDraft, isRecording, isDirty, isWhenDraftValid, setDraft, save, captureKeybinding } =
     editor;
   const showPill = !isRecording && keyDraft === row.key && row.key.length > 0 && !isDirty;
@@ -802,7 +805,7 @@ function KeybindingKeyControl({
           disabled={isSaving || keyDraft.trim().length === 0 || !isWhenDraftValid}
           onClick={save}
         >
-          {isSaving ? "Saving" : "Save"}
+          {isSaving ? t("Saving", "保存中") : t("Save", "保存")}
         </Button>
       ) : null}
       {showPill ? (
@@ -1191,13 +1194,14 @@ function NewKeybindingCancelIcon({
 }
 
 function NewKeybindingSettingsRow(props: NewKeybindingProps) {
+  const t = useTranslate();
   const { commandOptions, allRows, variables, isSaving, onSave, onCancel } = props;
   const draft = useNewKeybindingDraft({ allRows, onSave });
 
   return (
     <SettingsRow
       className="bg-muted/15"
-      title="New keybinding"
+      title={t("New keybinding", "新しいキーバインド")}
       description={
         <span className="flex h-6 items-center gap-1.5">
           <span className="text-xs leading-none text-muted-foreground/70">When</span>
@@ -1214,7 +1218,7 @@ function NewKeybindingSettingsRow(props: NewKeybindingProps) {
           <KeybindingConflictWarning labels={draft.conflictLabels} />
           <NewKeybindingKeyInput draft={draft} className="w-44" />
           <Button size="sm" disabled={isSaving || !draft.canSave} onClick={draft.save}>
-            {isSaving ? "Saving" : "Save"}
+            {isSaving ? t("Saving", "保存中") : t("Save", "保存")}
           </Button>
           <NewKeybindingCancelIcon isSaving={isSaving} onCancel={onCancel} />
         </div>
@@ -1247,7 +1251,11 @@ function KeybindingsGroups(props: KeybindingsGroupsProps) {
 }
 
 function BrowserKeybindingNotice() {
-  const message = "The browser may claim some shortcuts first. The desktop app receives them all.";
+  const t = useTranslate();
+  const message = t(
+    "The browser may claim some shortcuts first. The desktop app receives them all.",
+    "一部のショートカットはブラウザが優先して処理する場合があります。デスクトップアプリではすべて利用できます。",
+  );
   return (
     <Tooltip>
       <TooltipTrigger
@@ -1287,6 +1295,7 @@ function useKeybindingCatalog() {
 }
 
 export function KeybindingsSettingsPanel() {
+  const t = useTranslate();
   const { environment: primaryEnvironment, connectedEnvironments } = useSettingsScope();
   const canOpenKeybindingsFile = useEnvironmentScope(
     primaryEnvironment?.environmentId ?? null,
@@ -1444,6 +1453,7 @@ export function KeybindingsSettingsPanel() {
     <SettingsPageContainer>
       <SettingsSection
         {...searchableSetting("keybindings")}
+        title={t("Keybindings", "キーバインド")}
         headerAction={!isElectron ? <BrowserKeybindingNotice /> : null}
       >
         <div className="flex flex-wrap items-center gap-2 px-3 py-3 sm:px-4">
@@ -1455,7 +1465,7 @@ export function KeybindingsSettingsPanel() {
             onClick={() => setIsAddingBinding(true)}
           >
             <PlusIcon aria-hidden className="size-4" />
-            Add keybinding
+            {t("Add keybinding", "キーバインドを追加")}
           </Button>
           <Tooltip>
             <TooltipTrigger
@@ -1472,7 +1482,9 @@ export function KeybindingsSettingsPanel() {
                 </Button>
               }
             />
-            <TooltipPopup side="top">Open keybindings.json</TooltipPopup>
+            <TooltipPopup side="top">
+              {t("Open keybindings.json", "keybindings.json を開く")}
+            </TooltipPopup>
           </Tooltip>
         </div>
       </SettingsSection>
@@ -1480,8 +1492,14 @@ export function KeybindingsSettingsPanel() {
       {!canWriteSettings ? (
         <p className="text-xs text-muted-foreground">
           {connectedEnvironments.length === 0
-            ? "Connect an environment to change keybindings."
-            : "This connection can view keybindings but cannot change them."}
+            ? t(
+                "Connect an environment to change keybindings.",
+                "キーバインドを変更するには環境に接続してください。",
+              )
+            : t(
+                "This connection can view keybindings but cannot change them.",
+                "この接続ではキーバインドを閲覧できますが、変更はできません。",
+              )}
         </p>
       ) : null}
       <div inert={!canWriteSettings} className="flex flex-col gap-8">
@@ -1508,7 +1526,10 @@ export function KeybindingsSettingsPanel() {
         ) : (
           <SettingsGroup>
             <div className="px-4 py-12 text-center text-sm text-muted-foreground">
-              No keybindings match your search.
+              {t(
+                "No keybindings match your search.",
+                "検索条件に一致するキーバインドはありません。",
+              )}
             </div>
           </SettingsGroup>
         )}

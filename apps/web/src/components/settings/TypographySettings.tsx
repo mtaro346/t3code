@@ -1,3 +1,4 @@
+import { useTranslate } from "../../i18n";
 import type { ReactNode } from "react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import {
@@ -57,13 +58,18 @@ function useFontDefaultFamilies() {
 }
 
 function InterfaceFontRow({ preview }: { preview?: ReactNode }) {
+  const t = useTranslate();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
       {...searchableSetting("interface-font")}
-      description="Everything outside code blocks and the terminal."
+      title={t("Interface font", "画面のフォント")}
+      description={t(
+        "Everything outside code blocks and the terminal.",
+        "コードブロックとターミナル以外の画面に適用します。",
+      )}
       defaultFamily={defaults.sans}
       defaultValue={DEFAULT_UNIFIED_SETTINGS.fontFamilySans}
       value={settings.fontFamilySans}
@@ -75,7 +81,7 @@ function InterfaceFontRow({ preview }: { preview?: ReactNode }) {
         })
       }
       size={{
-        label: "Interface font size",
+        label: t("Interface font size", "画面のフォントサイズ"),
         min: MIN_INTERFACE_FONT_SIZE,
         max: MAX_INTERFACE_FONT_SIZE,
         value: settings.fontSizeInterface,
@@ -88,13 +94,18 @@ function InterfaceFontRow({ preview }: { preview?: ReactNode }) {
 }
 
 function PromptFontRow() {
+  const t = useTranslate();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
       {...searchableSetting("prompt-font")}
-      description="Only the box you write prompts in. Mono works well here."
+      title={t("Prompt font", "入力欄のフォント")}
+      description={t(
+        "Only the box you write prompts in. Mono works well here.",
+        "プロンプトの入力欄に適用します。等幅フォントがおすすめです。",
+      )}
       defaultFamily={defaults.interfaceFamily}
       defaultValue={DEFAULT_UNIFIED_SETTINGS.fontFamilyComposer}
       value={settings.fontFamilyComposer}
@@ -106,7 +117,7 @@ function PromptFontRow() {
         })
       }
       size={{
-        label: "Prompt font size",
+        label: t("Prompt font size", "入力欄のフォントサイズ"),
         min: MIN_PROMPT_FONT_SIZE,
         max: MAX_PROMPT_FONT_SIZE,
         value: settings.fontSizePrompt,
@@ -120,21 +131,28 @@ function PromptFontRow() {
 
 function CodeFontRow({
   title,
-  description = "Code blocks, diffs, and file previews.",
+  description,
   preview,
 }: {
   title?: string;
   description?: string;
   preview?: ReactNode;
 }) {
+  const t = useTranslate();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
       {...searchableSetting("code-font")}
-      {...(title !== undefined ? { title } : {})}
-      description={description}
+      title={title ?? t("Code font", "コードのフォント")}
+      description={
+        description ??
+        t(
+          "Code blocks, diffs, and file previews.",
+          "コードブロック、差分、ファイルプレビューに適用します。",
+        )
+      }
       defaultFamily={defaults.code}
       defaultValue={DEFAULT_UNIFIED_SETTINGS.fontFamilyCode}
       value={settings.fontFamilyCode}
@@ -147,7 +165,7 @@ function CodeFontRow({
       }
       requireMonospace
       size={{
-        label: "Code font size",
+        label: t("Code font size", "コードのフォントサイズ"),
         min: MIN_CODE_FONT_SIZE,
         max: MAX_CODE_FONT_SIZE,
         value: settings.fontSizeCode,
@@ -160,13 +178,18 @@ function CodeFontRow({
 }
 
 function TerminalFontRow() {
+  const t = useTranslate();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   const defaults = useFontDefaultFamilies();
   return (
     <FontFamilySettingsRow
       {...searchableSetting("terminal-font")}
-      description="Terminal output, independent from code blocks and diffs."
+      title={t("Terminal font", "ターミナルのフォント")}
+      description={t(
+        "Terminal output, independent from code blocks and diffs.",
+        "コードブロックや差分とは別に、ターミナル出力に適用します。",
+      )}
       defaultFamily={defaults.code}
       defaultValue={DEFAULT_UNIFIED_SETTINGS.fontFamilyTerminal}
       value={settings.fontFamilyTerminal}
@@ -179,7 +202,7 @@ function TerminalFontRow() {
       }
       requireMonospace
       size={{
-        label: "Terminal font size",
+        label: t("Terminal font size", "ターミナルのフォントサイズ"),
         min: MIN_TERMINAL_FONT_SIZE,
         max: MAX_TERMINAL_FONT_SIZE,
         value: settings.fontSizeTerminal,
@@ -201,13 +224,18 @@ function TerminalFontRow() {
 }
 
 function FontSmoothingRow() {
+  const t = useTranslate();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   if (!isMacPlatform(navigator.platform)) return null;
   return (
     <SettingsRow
       {...searchableSetting("font-smoothing")}
-      description="Use thinner grayscale text smoothing instead of the macOS default."
+      title={t("Font smoothing", "フォントの平滑化")}
+      description={t(
+        "Use thinner grayscale text smoothing instead of the macOS default.",
+        "macOS の標準設定に代えて、細めのグレースケール平滑化を使用します。",
+      )}
       resetAction={
         settings.fontSmoothing !== DEFAULT_UNIFIED_SETTINGS.fontSmoothing ? (
           <SettingResetButton
@@ -230,12 +258,17 @@ function FontSmoothingRow() {
 }
 
 function WordWrapRow() {
+  const t = useTranslate();
   const settings = useScopedSettings();
   const updateSettings = useUpdateScopedSettings();
   return (
     <SettingsRow
       {...searchableSetting("word-wrap")}
-      description="Wrap long lines in code blocks, tables, diffs, and file previews by default."
+      title={t("Word wrap", "行の折り返し")}
+      description={t(
+        "Wrap long lines in code blocks, tables, diffs, and file previews by default.",
+        "コードブロック、表、差分、ファイルプレビューの長い行を折り返します。",
+      )}
       resetAction={
         settings.wordWrap !== DEFAULT_UNIFIED_SETTINGS.wordWrap ? (
           <SettingResetButton
@@ -273,10 +306,15 @@ function SeparateFontsRow({
   readonly checked: boolean;
   readonly onCheckedChange: (checked: boolean) => void;
 }) {
+  const t = useTranslate();
   return (
     <SettingsRow
       {...searchableSetting("separate-fonts")}
-      description="Set the prompt, code, and terminal fonts separately instead of one monospace font."
+      title={t("Separate fonts", "フォントを個別に設定")}
+      description={t(
+        "Set the prompt, code, and terminal fonts separately instead of one monospace font.",
+        "入力欄、コード、ターミナルのフォントをそれぞれ設定します。",
+      )}
       control={
         <Switch
           checked={checked}
@@ -289,13 +327,17 @@ function SeparateFontsRow({
 }
 
 function SimpleFontRows() {
+  const t = useTranslate();
   const settings = useScopedSettings();
   return (
     <>
       <InterfaceFontRow preview={<PromptFontPreview />} />
       <CodeFontRow
-        title="Monospace font"
-        description="Code blocks, diffs, file previews, and the terminal."
+        title={t("Monospace font", "等幅フォント")}
+        description={t(
+          "Code blocks, diffs, file previews, and the terminal.",
+          "コードブロック、差分、ファイルプレビュー、ターミナルに適用します。",
+        )}
         preview={
           <>
             <CodeFontPreview />
@@ -319,6 +361,7 @@ function SimpleFontRows() {
 }
 
 export function TypographySection() {
+  const t = useTranslate();
   const [advanced, setAdvanced] = useLocalStorage(
     TYPOGRAPHY_ADVANCED_STORAGE_KEY,
     false,
@@ -335,7 +378,7 @@ export function TypographySection() {
   const showAdvanced =
     advanced || (searchTargetId !== null && isAdvancedTypographyTarget(searchTargetId));
   return (
-    <SettingsSection id="typography" title="Typography">
+    <SettingsSection id="typography" title={t("Typography", "文字表示")}>
       {showAdvanced ? <FontSettingsGroup /> : <SimpleFontRows />}
       <WordWrapRow />
       <AdvancedSettings

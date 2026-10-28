@@ -1,3 +1,4 @@
+import { useTranslate } from "../../lib/i18n";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import type { SidebarProjectGroupingMode } from "@t3tools/contracts";
@@ -17,26 +18,35 @@ import { NewThreadSettingsSection, WorkingSectionSettings } from "./ThreadSettin
 const GROUPING_OPTIONS: ReadonlyArray<{
   readonly mode: SidebarProjectGroupingMode;
   readonly label: string;
+  readonly labelJa: string;
   readonly description: string;
+  readonly descriptionJa: string;
 }> = [
   {
     mode: "repository",
     label: "Group by repository",
+    labelJa: "リポジトリでまとめる",
     description: "Matching repositories appear as one project.",
+    descriptionJa: "同じリポジトリを1つのプロジェクトとして表示します。",
   },
   {
     mode: "repository_path",
     label: "Group by repository path",
+    labelJa: "リポジトリのパスでまとめる",
     description: "Keep monorepo paths separate.",
+    descriptionJa: "モノレポ内のパスを分けて表示します。",
   },
   {
     mode: "separate",
     label: "Keep separate",
+    labelJa: "個別に表示",
     description: "Show every workspace as its own project.",
+    descriptionJa: "各ワークスペースを別のプロジェクトとして表示します。",
   },
 ];
 
 export function SettingsProjectGroupingRouteScreen() {
+  const t = useTranslate();
   const insets = useSafeAreaInsets();
   const preferencesResult = useAtomValue(mobilePreferencesAtom);
   const savePreferences = useAtomSet(updateMobilePreferencesAtom);
@@ -46,7 +56,7 @@ export function SettingsProjectGroupingRouteScreen() {
     : null;
 
   return (
-    <SettingsScreen title="General">
+    <SettingsScreen title={t("General", "一般")}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
@@ -54,12 +64,27 @@ export function SettingsProjectGroupingRouteScreen() {
         contentContainerClassName="gap-3 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
-        <SettingsSection title="Project grouping">
+        <SettingsSection title={t("Display language", "表示言語")}>
+          {(["en", "ja"] as const).map((language, index) => (
+            <SettingsChoiceRow
+              key={language}
+              label={language === "ja" ? "日本語" : "English"}
+              selected={
+                AsyncResult.isSuccess(preferencesResult) &&
+                (preferencesResult.value.language ?? "en") === language
+              }
+              separated={index > 0}
+              disabled={!preferencesReady}
+              onPress={() => savePreferences({ language })}
+            />
+          ))}
+        </SettingsSection>
+        <SettingsSection title={t("Project grouping", "プロジェクトのグループ化")}>
           {GROUPING_OPTIONS.map((option, index) => (
             <SettingsChoiceRow
               key={option.mode}
-              label={option.label}
-              description={option.description}
+              label={t(option.label, option.labelJa)}
+              description={t(option.description, option.descriptionJa)}
               selected={selectedMode === option.mode}
               separated={index > 0}
               disabled={!preferencesReady}

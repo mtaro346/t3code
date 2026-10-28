@@ -1,3 +1,4 @@
+import { useTranslate } from "~/i18n";
 import {
   isAtomCommandInterrupted,
   squashAtomCommandFailure,
@@ -41,6 +42,7 @@ export function ProviderAuthenticationSection({
   readonly readOnly: boolean;
 }) {
   const target = { environmentId, input: { instanceId } };
+  const t = useTranslate();
   const query = useEnvironmentQuery(serverEnvironment.providerAuthState(target));
   const commands = { reportFailure: false, reportDefect: false };
   const start = useAtomCommand(serverEnvironment.startProviderAuth, commands);
@@ -77,16 +79,16 @@ export function ProviderAuthenticationSection({
     ? auth?.phase === "starting"
       ? (auth.message ?? "Starting sign-in…")
       : auth?.phase === "verifying"
-        ? "Checking your account…"
+        ? t("Checking your account…", "アカウントを確認中…")
         : interaction?.type === "terminal"
           ? "Complete sign-in in the terminal below."
           : interaction?.type === "credentials"
             ? "Enter your credentials below."
             : "Finish signing in in your browser."
     : signedIn
-      ? "Signed in."
+      ? t("Signed in.", "サインイン済み。")
       : isDiscovering
-        ? "Discovering sign-in methods…"
+        ? t("Discovering sign-in methods…", "サインイン方法を確認中…")
         : needsExternalSetup
           ? "No in-app sign-in advertised. Follow the provider's docs to finish setup."
           : `Sign in on ${environmentLabel}.`;
@@ -158,7 +160,7 @@ export function ProviderAuthenticationSection({
 
   return (
     <SettingsRow
-      title="Account"
+      title={t("Account", "アカウント")}
       description={
         signedIn && !active && provider.auth.email?.trim() ? (
           <span>
@@ -191,14 +193,18 @@ export function ProviderAuthenticationSection({
               disabled={disabled}
               onValueChange={(value) => setMethodId(value ?? "")}
             >
-              <SelectTrigger size="sm" aria-label="Sign-in method" className="w-44">
+              <SelectTrigger
+                size="sm"
+                aria-label={t("Sign-in method", "サインイン方法")}
+                className="w-44"
+              >
                 <SelectValue>
                   {auth?.methods?.find((method) => method.id === methodId)?.name ??
-                    "Provider default"}
+                    t("Provider default", "プロバイダーの既定")}
                 </SelectValue>
               </SelectTrigger>
               <SelectPopup>
-                <SelectItem value="">Provider default</SelectItem>
+                <SelectItem value="">{t("Provider default", "プロバイダーの既定")}</SelectItem>
                 {auth?.methods?.map((method) => (
                   <SelectItem key={method.id} value={method.id}>
                     {method.name}
@@ -221,7 +227,7 @@ export function ProviderAuthenticationSection({
                 <TooltipTrigger
                   render={
                     <Button
-                      aria-label="Copy sign-in link"
+                      aria-label={t("Copy sign-in link", "サインインリンクをコピー")}
                       size="icon-sm"
                       variant="ghost-muted"
                       disabled={disabled}
@@ -240,7 +246,7 @@ export function ProviderAuthenticationSection({
                     </Button>
                   }
                 />
-                <TooltipPopup>Copy sign-in link</TooltipPopup>
+                <TooltipPopup>{t("Copy sign-in link", "サインインリンクをコピー")}</TooltipPopup>
               </Tooltip>
             </>
           ) : null}
@@ -259,7 +265,7 @@ export function ProviderAuthenticationSection({
               <Button
                 size="sm"
                 variant="ghost-muted"
-                aria-label="Cancel sign-in"
+                aria-label={t("Cancel sign-in", "サインインをキャンセル")}
                 disabled={disabled}
                 onClick={() =>
                   void run(() =>
@@ -289,10 +295,10 @@ export function ProviderAuthenticationSection({
                 }
               >
                 {signedIn
-                  ? "Change account"
+                  ? t("Change account", "アカウントを変更")
                   : auth?.phase === "failed" || auth?.phase === "cancelled"
-                    ? "Retry sign-in"
-                    : "Sign in"}
+                    ? t("Retry sign-in", "サインインを再試行")
+                    : t("Sign in", "サインイン")}
               </Button>
             ) : null}
             {!active && signedIn && (provider.auth.canLogout ?? provider.setup?.canAuthenticate) ? (

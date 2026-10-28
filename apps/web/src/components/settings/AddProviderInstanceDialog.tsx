@@ -1,3 +1,4 @@
+import { useTranslate } from "~/i18n";
 import { ProviderInstanceIcon } from "../chat/ProviderInstanceIcon";
 
 import { Radio as RadioPrimitive } from "@base-ui/react/radio";
@@ -160,6 +161,7 @@ export function AddProviderInstanceDialog({
   onCreated,
 }: AddProviderInstanceDialogProps) {
   const settings = useEnvironmentSettings(environmentId);
+  const t = useTranslate();
   const persistProviderInstance = usePersistEnvironmentProviderInstanceMutation(environmentId);
   const canManageProviders = useEnvironmentScope(environmentId, AuthProvidersManageScope);
 
@@ -425,8 +427,15 @@ export function AddProviderInstanceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <WizardPopup size="wide">
         <WizardHeader
-          title="Add provider"
-          description={<>Add an account or configure a provider on {environmentLabel}.</>}
+          title={t("Add provider", "プロバイダーを追加")}
+          description={
+            <>
+              {t(
+                `Add an account or configure a provider on ${environmentLabel}.`,
+                `${environmentLabel} にアカウントを追加するか、プロバイダーを設定します。`,
+              )}
+            </>
+          }
         >
           {isAcpRegistry ? (
             <AddProviderInstanceWizardSteps
@@ -478,7 +487,9 @@ export function AddProviderInstanceDialog({
                 <Collapsible open={showMoreProviders} onOpenChange={setShowMoreProviders}>
                   <div className="flex pt-2">
                     <CollapsibleTrigger render={<Button variant="ghost-muted" size="xs" />}>
-                      {showMoreProviders ? "Show less" : "Show more"}
+                      {showMoreProviders
+                        ? t("Show less", "表示を減らす")
+                        : t("Show more", "さらに表示")}
                       <ChevronDownIcon
                         aria-hidden
                         className={cn("transition-transform", showMoreProviders && "rotate-180")}
@@ -493,11 +504,13 @@ export function AddProviderInstanceDialog({
                         value={driver}
                         disabled={isPreparingRegistryAgent}
                         onValueChange={selectDriver}
-                        aria-label="More providers"
+                        aria-label={t("More providers", "その他のプロバイダー")}
                       />
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <div aria-hidden className="flex-1 border-t border-border/70" />
-                        <span>Or choose from ACP Registry</span>
+                        <span>
+                          {t("Or choose from ACP Registry", "または ACP Registry から選択")}
+                        </span>
                         <div aria-hidden className="flex-1 border-t border-border/70" />
                       </div>
                       {isAcpRegistry && isManualAcpConfiguration ? (
@@ -605,9 +618,11 @@ export function AddProviderInstanceDialog({
                 className={cn(wizardStep !== identityStep && "hidden")}
               >
                 <SettingsRow
-                  title={<label htmlFor="add-provider-label">Label</label>}
+                  title={<label htmlFor="add-provider-label">{t("Label", "名前")}</label>}
                   description={
-                    <span id="add-provider-label-description">Shown in the provider list.</span>
+                    <span id="add-provider-label-description">
+                      {t("Shown in the provider list.", "プロバイダー一覧に表示されます。")}
+                    </span>
                   }
                   control={
                     <Input
@@ -659,8 +674,11 @@ export function AddProviderInstanceDialog({
                   }
                 />
                 <SettingsRow
-                  title="Accent color"
-                  description="Optional marker shown in the picker."
+                  title={t("Accent color", "アクセントカラー")}
+                  description={t(
+                    "Optional marker shown in the picker.",
+                    "選択画面に表示される任意のマークです。",
+                  )}
                   control={
                     <ProviderAccentColorPicker
                       displayName={label || driverOption.label}
@@ -704,7 +722,7 @@ export function AddProviderInstanceDialog({
                   setWizardStep((step) => Math.max(0, step - 1));
                 }}
               >
-                {wizardStep === 0 ? "Cancel" : "Back"}
+                {wizardStep === 0 ? t("Cancel", "キャンセル") : t("Back", "戻る")}
               </Button>
               {wizardStep === 0 && driver === "codex" ? (
                 <>
@@ -731,10 +749,10 @@ export function AddProviderInstanceDialog({
                   onClick={() => void handleSave()}
                 >
                   {isSaving
-                    ? "Adding..."
+                    ? t("Adding...", "追加中...")
                     : isAcpRegistry && !isLocalAcp
-                      ? "Continue to sign-in"
-                      : "Add instance"}
+                      ? t("Continue to sign-in", "サインインに進む")
+                      : t("Add instance", "インスタンスを追加")}
                 </Button>
               )}
             </WizardFooter>

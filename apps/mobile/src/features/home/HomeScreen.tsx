@@ -1,3 +1,4 @@
+import { useTranslate } from "../../lib/i18n";
 import { useActiveNewTask } from "../../state/active-new-task";
 import { AppActivityIndicator } from "../../components/ui/AppActivityIndicator";
 import { useAndroidControlSizing } from "../../components/ui/useAndroidControlSizing";
@@ -143,20 +144,27 @@ const THREAD_LIST_V2_DRAW_DISTANCE = 1_000;
 function deriveEmptyState(props: {
   readonly catalogState: WorkspaceState;
   readonly projectCount: number;
+  readonly t: (en: string, ja: string) => string;
 }): { readonly title: string; readonly detail: string; readonly loading: boolean } {
-  const { catalogState } = props;
+  const { catalogState, t } = props;
   if (catalogState.isLoadingConnections) {
     return {
-      title: "Loading environments",
-      detail: "Checking saved environments on this device.",
+      title: t("Loading environments", "環境を読み込み中"),
+      detail: t(
+        "Checking saved environments on this device.",
+        "このデバイスに保存された環境を確認しています。",
+      ),
       loading: true,
     };
   }
 
   if (!catalogState.hasConnections) {
     return {
-      title: "No environments connected",
-      detail: "Add an environment to load projects and start coding sessions.",
+      title: t("No environments connected", "接続済みの環境がありません"),
+      detail: t(
+        "Add an environment to load projects and start coding sessions.",
+        "環境を追加すると、プロジェクトの読み込みや作業を開始できます。",
+      ),
       loading: false,
     };
   }
@@ -171,11 +179,14 @@ function deriveEmptyState(props: {
     return {
       title:
         catalogState.connectionState === "unsupported"
-          ? "Client not supported"
-          : "Environment unavailable",
+          ? t("Client not supported", "このクライアントは対応していません")
+          : t("Environment unavailable", "環境に接続できません"),
       detail:
         catalogState.connectionError ??
-        "The saved environment is offline. Check the URL or start the environment, then retry.",
+        t(
+          "The saved environment is offline. Check the URL or start the environment, then retry.",
+          "保存された環境はオフラインです。URL を確認するか環境を起動してから再試行してください。",
+        ),
       loading: false,
     };
   }
@@ -186,23 +197,32 @@ function deriveEmptyState(props: {
     catalogState.connectionError === null
   ) {
     return {
-      title: "Connecting to environment",
-      detail: "Loading projects and threads from the saved environment.",
+      title: t("Connecting to environment", "環境に接続中"),
+      detail: t(
+        "Loading projects and threads from the saved environment.",
+        "保存された環境からプロジェクトとスレッドを読み込んでいます。",
+      ),
       loading: true,
     };
   }
 
   if (props.projectCount === 0 && catalogState.hasLoadedShellSnapshot) {
     return {
-      title: "No projects found",
-      detail: "The connected environment did not report any projects.",
+      title: t("No projects found", "プロジェクトが見つかりません"),
+      detail: t(
+        "The connected environment did not report any projects.",
+        "接続先の環境にプロジェクトがありません。",
+      ),
       loading: false,
     };
   }
 
   return {
-    title: "No threads yet",
-    detail: "Create a task to start a new coding runtime in one of your connected projects.",
+    title: t("No threads yet", "スレッドはまだありません"),
+    detail: t(
+      "Create a task to start a new coding runtime in one of your connected projects.",
+      "タスクを作成して、接続済みプロジェクトで作業を始めましょう。",
+    ),
     loading: false,
   };
 }
@@ -239,6 +259,7 @@ function renderHomeScrollView(props: ScrollViewProps) {
 }
 
 export function HomeScreen(props: HomeScreenProps) {
+  const t = useTranslate();
   const usesNativeWorkspaceColumns = useNativeWorkspaceColumnsSupported();
   const workspace = useWorkspaceTabs();
   const [initialScrollOffset] = useState(() => workspace?.getScrollOffset("threads") ?? 0);
@@ -654,6 +675,7 @@ export function HomeScreen(props: HomeScreenProps) {
   const emptyState = deriveEmptyState({
     catalogState: props.catalogState,
     projectCount: props.projects.length,
+    t,
   });
 
   if (!hasAnyThreads) {
@@ -676,12 +698,16 @@ export function HomeScreen(props: HomeScreenProps) {
             <EmptyState
               title={emptyState.title}
               detail={emptyState.detail}
-              actionLabel={!props.catalogState.hasReadyEnvironment ? "Add environment" : undefined}
+              actionLabel={
+                !props.catalogState.hasReadyEnvironment
+                  ? t("Add environment", "環境を追加")
+                  : undefined
+              }
               onAction={!props.catalogState.hasReadyEnvironment ? props.onAddConnection : undefined}
               action={
                 Platform.OS === "android" && !props.catalogState.hasReadyEnvironment ? (
                   <FloatingActionButton
-                    label="Add environment"
+                    label={t("Add environment", "環境を追加")}
                     icon="plus"
                     variant="extended"
                     tone="primary"
@@ -724,26 +750,44 @@ export function HomeScreen(props: HomeScreenProps) {
   const v2ListEmpty =
     hasSearchQuery && threadSearch.isPending ? undefined : hasSearchQuery ? (
       <EmptyState
-        title="No results"
-        detail={`No threads matching "${props.searchQuery}".`}
+        title={t("No results", "検索結果がありません")}
+        detail={t(
+          `No threads matching "${props.searchQuery}".`,
+          `「${props.searchQuery}」に一致するスレッドはありません。`,
+        )}
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     ) : v2ScopedProjectGroup !== null ? (
       <EmptyState
-        title={`No threads in ${v2ScopedProjectGroup.title}`}
-        detail="Choose another project or create a new task."
+        title={t(
+          `No threads in ${v2ScopedProjectGroup.title}`,
+          `${v2ScopedProjectGroup.title} にスレッドがありません`,
+        )}
+        detail={t(
+          "Choose another project or create a new task.",
+          "別のプロジェクトを選ぶか、新しいタスクを作成してください。",
+        )}
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     ) : selectedEnvironmentLabel ? (
       <EmptyState
-        title={`No threads in ${selectedEnvironmentLabel}`}
-        detail="Choose another environment or create a new task."
+        title={t(
+          `No threads in ${selectedEnvironmentLabel}`,
+          `${selectedEnvironmentLabel} にスレッドがありません`,
+        )}
+        detail={t(
+          "Choose another environment or create a new task.",
+          "別の環境を選ぶか、新しいタスクを作成してください。",
+        )}
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     ) : (
       <EmptyState
-        title="No threads yet"
-        detail="Create a task to start a new coding session."
+        title={t("No threads yet", "スレッドはまだありません")}
+        detail={t(
+          "Create a task to start a new coding session.",
+          "タスクを作成して新しい作業を始めましょう。",
+        )}
         variant={Platform.OS === "android" ? "plain" : undefined}
       />
     );

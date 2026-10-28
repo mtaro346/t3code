@@ -1,3 +1,4 @@
+import { translateSettingsLabel, useTranslate } from "../../lib/i18n";
 import {
   navigationCustomizationAvailable,
   overflowNavigationTabs,
@@ -57,6 +58,7 @@ export function SettingsListScreen(props: {
   readonly sidebar: boolean;
   readonly selected: string | null;
 }) {
+  const t = useTranslate();
   const surface = useWorkspaceSurface();
   const workspace = useWorkspaceTabs();
   const inSidebar = props.sidebar;
@@ -74,7 +76,7 @@ export function SettingsListScreen(props: {
         <SettingsEnvironmentFilterHeader />
         {Platform.OS === "android" ? (
           <SettingsScreen
-            title="Settings"
+            title={t("Settings", "設定")}
             workspaceRoot={inSidebar}
             trailing={<AndroidSettingsEnvironmentFilter />}
             search={
@@ -83,7 +85,7 @@ export function SettingsListScreen(props: {
                     value: workspace.state.tabs.settings.query,
                     onChangeText: (query) =>
                       workspace.dispatch({ type: "query", tab: "settings", query }),
-                    placeholder: "Search settings",
+                    placeholder: t("Search settings", "設定を検索"),
                   }
                 : undefined
             }
@@ -156,6 +158,7 @@ function environmentsRow(count: number): SettingsListRow {
 }
 
 function SettingsList(props: { readonly connections: readonly SettingsListRow[] }) {
+  const t = useTranslate();
   // UIKit's scroll-edge material takes the scroll view's own color; like the chat list, match
   // the sidebar's surface so the bar doesn't darken over content at rest.
   // Grouped cards only lift off the screen surface; the drawer is as dark as they are.
@@ -170,6 +173,7 @@ function SettingsList(props: { readonly connections: readonly SettingsListRow[] 
   const sections = filterSettingsSections(
     [{ rows: overflowRows }, { title: "Connections", rows: props.connections }, ...indexSections],
     query,
+    (label) => translateSettingsLabel(t, label),
   );
 
   return (
@@ -191,17 +195,23 @@ function SettingsList(props: { readonly connections: readonly SettingsListRow[] 
       >
         {sections.length ? (
           sections.map((section, index) => (
-            <SettingsSection key={section.title ?? `untitled-${index}`} title={section.title}>
+            <SettingsSection
+              key={section.title ?? `untitled-${index}`}
+              title={section.title ? translateSettingsLabel(t, section.title) : undefined}
+            >
               {section.rows.map(({ id, ...row }) => (
-                <SettingsRow key={id} {...row} />
+                <SettingsRow key={id} {...row} label={translateSettingsLabel(t, row.label)} />
               ))}
             </SettingsSection>
           ))
         ) : (
           <EmptyState
             variant="plain"
-            title="No results"
-            detail={`No settings match “${query.trim()}”.`}
+            title={t("No results", "検索結果がありません")}
+            detail={t(
+              `No settings match “${query.trim()}”.`,
+              `「${query.trim()}」に一致する設定はありません。`,
+            )}
           />
         )}
       </ScrollView>

@@ -1,3 +1,4 @@
+import { useTranslate } from "../../lib/i18n";
 import * as Dialog from "../../components/ui/Dialog";
 import type { ThreadRowProviderInstance } from "./thread-provider-instance";
 import {
@@ -142,6 +143,43 @@ function ThreadListV2Duration(props: { readonly startedAt: string | null }) {
   const nowMs = useVisibleSecondClock(Number.isFinite(startedAtMs));
   if (!Number.isFinite(startedAtMs)) return null;
   return ` ${formatWorkingDurationLabel(nowMs - startedAtMs)}`;
+}
+
+const THREAD_ACTION_LABELS_JA: Readonly<Record<string, string>> = {
+  settle: "完了にする",
+  unsettle: "完了を取り消す",
+  unsnooze: "スレッドを再開",
+  archive: "アーカイブ",
+  delete: "削除",
+  snooze: "スヌーズ",
+  "snooze:custom": "カスタム…",
+  arrange: "スレッドを並べ替え…",
+  "move-up": "上に移動",
+  "move-down": "下に移動",
+  pin: "ピン留め",
+  unpin: "ピン留めを解除",
+  "auto-settle": "自動完了の動作",
+  "auto-settle:enabled": "有効",
+  "auto-settle:disabled": "無効",
+  rename: "名前を変更",
+  "copy-thread": "スレッドをコピー",
+  "copy-thread-id": "スレッド ID をコピー",
+};
+
+function translateThreadActions(
+  actions: MenuAction[],
+  t: (en: string, ja: string) => string,
+): MenuAction[] {
+  return actions.map((action) => ({
+    ...action,
+    title: t(
+      action.title,
+      action.id === "delete" && action.title === "Discard"
+        ? "破棄"
+        : (THREAD_ACTION_LABELS_JA[action.id ?? ""] ?? action.title),
+    ),
+    ...(action.subactions ? { subactions: translateThreadActions(action.subactions, t) } : {}),
+  }));
 }
 
 const CARD_MENU_ACTIONS: MenuAction[] = [
@@ -361,6 +399,7 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
   readonly activationKey?: string;
   readonly simultaneousSwipeGesture?: ComponentProps<typeof ThreadSwipeable>["simultaneousWith"];
 }) {
+  const t = useTranslate();
   const { pendingTask, onSelectPendingTask, onDeletePendingTask } = props;
   const { width: windowWidth } = useWindowDimensions();
   const dormant = useSwipeRowDormant(props.activationKey);
@@ -368,7 +407,7 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
   const sidebarPane = props.pane === "sidebar";
   const rowAppearance = getThreadListV2RowAppearance(theme, sidebarPane, props.selected ?? false);
   const isDraft = pendingTask.kind === "draft";
-  const deleteLabel = isDraft ? "Discard" : "Delete";
+  const deleteLabel = isDraft ? t("Discard", "破棄") : t("Delete", "削除");
   const handleDelete = useCallback(
     () => onDeletePendingTask(pendingTask),
     [onDeletePendingTask, pendingTask],
@@ -536,7 +575,10 @@ export const ThreadListV2PendingRow = memo(function ThreadListV2PendingRow(props
       >
         {() => (
           <Menu
-            actions={isDraft ? DRAFT_TASK_MENU_ACTIONS : PENDING_TASK_MENU_ACTIONS}
+            actions={translateThreadActions(
+              isDraft ? DRAFT_TASK_MENU_ACTIONS : PENDING_TASK_MENU_ACTIONS,
+              t,
+            )}
             onPressAction={handleMenuAction}
             shouldOpenOnLongPress
           >
@@ -630,6 +672,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
   readonly searchQuery?: string;
   readonly simultaneousSwipeGesture?: ComponentProps<typeof ThreadSwipeable>["simultaneousWith"];
 }) {
+  const t = useTranslate();
   const { width: windowWidth, fontScale } = useWindowDimensions();
   const titleTypography = useScaledTextRole("body");
   const metadataTypography = useScaledTextRole("label");
@@ -981,7 +1024,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       return {
         accessibilityLabel: `Archive ${thread.title}`,
         icon: "archivebox" as const,
-        label: "Archive",
+        label: t("Archive", "アーカイブ"),
         onPress: handleArchive,
       };
     }
@@ -989,7 +1032,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       return {
         accessibilityLabel: `Wake ${thread.title} now`,
         icon: "clock" as const,
-        label: "Wake",
+        label: t("Wake", "再開"),
         onPress: handleUnsnooze,
       };
     }
@@ -997,16 +1040,17 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       ? {
           accessibilityLabel: `Un-settle ${thread.title}`,
           icon: "arrow.uturn.backward" as const,
-          label: "Un-settle",
+          label: t("Un-settle", "完了を取り消す"),
           onPress: handleUnsettle,
         }
       : {
           accessibilityLabel: `Settle ${thread.title}`,
           icon: "checkmark" as const,
-          label: "Settle",
+          label: t("Settle", "完了にする"),
           onPress: handleSettle,
         };
   }, [
+    t,
     handleArchive,
     handleSettle,
     handleUnsettle,
@@ -1020,16 +1064,16 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         ? {
             accessibilityLabel: `Choose when to snooze ${thread.title}`,
             icon: "clock" as const,
-            label: "Snooze",
+            label: t("Snooze", "スヌーズ"),
             menu: {
-              actions: snoozePresetActions,
+              actions: translateThreadActions(snoozePresetActions, t),
               onPressAction: handleMenuAction,
-              title: "Snooze until",
+              title: t("Snooze until", "スヌーズの期限"),
             },
             onPress: () => undefined,
           }
         : null,
-    [handleMenuAction, snoozePresetActions, swipeActions.secondary, thread.title],
+    [t, handleMenuAction, snoozePresetActions, swipeActions.secondary, thread.title],
   );
   const swipeAccessibilityHint = !canOperateThread
     ? "Opens the thread"
@@ -1412,28 +1456,31 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       >
         {(close) => (
           <Menu
-            actions={[
-              ...(thread.branch
-                ? [
-                    {
-                      id: "new-thread-on-branch",
-                      title: getThreadListV2NewBranchMenuTitle(thread.branch),
-                      image: "square.and.pencil",
-                    },
-                  ]
-                : []),
-              { id: "copy-thread", title: "Copy thread", image: "text.bubble" },
-              { id: "copy-thread-id", title: "Copy thread ID", image: "doc.on.doc" },
-              ...(snoozedRow
-                ? snoozedMenuActions
-                : !props.settlementSupported
-                  ? legacyMenuActions
-                  : canUnsettle
-                    ? slimMenuActions
-                    : swipeActions.secondary === "snooze"
-                      ? snoozableCardMenuActions
-                      : cardMenuActions),
-            ]}
+            actions={translateThreadActions(
+              [
+                ...(thread.branch
+                  ? [
+                      {
+                        id: "new-thread-on-branch",
+                        title: getThreadListV2NewBranchMenuTitle(thread.branch),
+                        image: "square.and.pencil",
+                      },
+                    ]
+                  : []),
+                { id: "copy-thread", title: "Copy thread", image: "text.bubble" },
+                { id: "copy-thread-id", title: "Copy thread ID", image: "doc.on.doc" },
+                ...(snoozedRow
+                  ? snoozedMenuActions
+                  : !props.settlementSupported
+                    ? legacyMenuActions
+                    : canUnsettle
+                      ? slimMenuActions
+                      : swipeActions.secondary === "snooze"
+                        ? snoozableCardMenuActions
+                        : cardMenuActions),
+              ],
+              t,
+            )}
             onPressAction={handleMenuAction}
             shouldOpenOnLongPress
           >

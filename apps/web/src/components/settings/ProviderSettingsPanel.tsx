@@ -1,3 +1,4 @@
+import { useTranslate } from "~/i18n";
 import { SettingsGroup } from "./SettingsGroup";
 import { RefreshIcon } from "~/components/ui/refresh-icon";
 import {
@@ -215,8 +216,13 @@ function ProviderSettingsPlaceholder({
   readonly description: string;
   readonly children?: ReactNode;
 }) {
+  const t = useTranslate();
   return (
-    <SettingsSection {...searchableSetting("providers")} variant="plain">
+    <SettingsSection
+      {...searchableSetting("providers")}
+      title={t("Providers", "プロバイダー")}
+      variant="plain"
+    >
       {deviceTabs ? (
         <div className="flex min-h-11 min-w-0 items-center px-3 sm:px-4">{deviceTabs}</div>
       ) : null}
@@ -547,6 +553,7 @@ export function EnvironmentProviderSettings({
   readonly readOnly?: boolean;
 }) {
   const settings = useEnvironmentSettings(environmentId);
+  const t = useTranslate();
   const canWriteSettings = useEnvironmentScope(environmentId, AuthSettingsWriteScope);
   const canRefreshProviders = useEnvironmentScope(environmentId, AuthOrchestrationReadScope);
   const updateSettings = useUpdateEnvironmentSettings(environmentId);
@@ -959,6 +966,7 @@ export function EnvironmentProviderSettings({
     <>
       <SettingsSection
         {...searchableSetting("providers")}
+        title={t("Providers", "プロバイダー")}
         variant="plain"
         titleAction={
           !readOnly ? (
@@ -969,13 +977,13 @@ export function EnvironmentProviderSettings({
                     size="icon-xs"
                     variant="ghost-muted"
                     onClick={() => setIsAddInstanceDialogOpen(true)}
-                    aria-label="Add provider"
+                    aria-label={t("Add provider", "プロバイダーを追加")}
                   >
                     <PlusIcon />
                   </Button>
                 }
               />
-              <TooltipPopup side="top">Add provider</TooltipPopup>
+              <TooltipPopup side="top">{t("Add provider", "プロバイダーを追加")}</TooltipPopup>
             </Tooltip>
           ) : null
         }
@@ -994,10 +1002,12 @@ export function EnvironmentProviderSettings({
                     onClick={() => void refreshProviders()}
                   >
                     <RefreshIcon refreshing={isRefreshingProviders} />
-                    <span className="sr-only">Refresh provider status</span>
+                    <span className="sr-only">
+                      {t("Refresh provider status", "プロバイダーの状態を更新")}
+                    </span>
                     <span className="hidden min-w-0 truncate sm:inline">
                       {isRefreshingProviders ? (
-                        "Refreshing providers"
+                        t("Refreshing providers", "プロバイダーを更新中")
                       ) : (
                         <ProviderLastChecked environmentId={environmentId} />
                       )}
@@ -1005,7 +1015,9 @@ export function EnvironmentProviderSettings({
                   </Button>
                 }
               />
-              <TooltipPopup side="top">Refresh provider status</TooltipPopup>
+              <TooltipPopup side="top">
+                {t("Refresh provider status", "プロバイダーの状態を更新")}
+              </TooltipPopup>
             </Tooltip>
           </div>
         }
@@ -1016,7 +1028,7 @@ export function EnvironmentProviderSettings({
         {readOnly ? (
           <SettingsGroup divided={false} className="overflow-hidden">
             <SettingsRow
-              title="Limited permissions"
+              title={t("Limited permissions", "権限が制限されています")}
               description={`This session can view ${environmentLabel}'s providers but can't change their settings.`}
             />
           </SettingsGroup>
@@ -1061,8 +1073,11 @@ export function EnvironmentProviderSettings({
             ) : (
               <div className="p-6 text-sm text-muted-foreground">
                 {targetInstanceMissing
-                  ? "This provider instance is no longer available on this device."
-                  : "No providers configured."}
+                  ? t(
+                      "This provider instance is no longer available on this device.",
+                      "このデバイスではプロバイダーが利用できなくなりました。",
+                    )
+                  : t("No providers configured.", "プロバイダーが設定されていません。")}
               </div>
             )}
           </div>
@@ -1078,7 +1093,7 @@ export function EnvironmentProviderSettings({
         readOnly={readOnly}
       />
 
-      <SettingsSection title="Advanced">
+      <SettingsSection title={t("Advanced", "詳細設定")}>
         <SettingsRow
           id={searchableSetting("provider-health-check-interval").id}
           title={
@@ -1091,7 +1106,10 @@ export function EnvironmentProviderSettings({
               </PolicyTooltip>
             </span>
           }
-          description="Refresh provider status, versions, and models in the background. Set to 0 to disable."
+          description={t(
+            "Refresh provider status, versions, and models in the background. Set to 0 to disable.",
+            "プロバイダーの状態、バージョン、モデルをバックグラウンドで更新します。0 で無効になります。",
+          )}
           resetAction={
             providerHealthRefreshIntervalSeconds !== defaultProviderHealthRefreshIntervalSeconds ? (
               <span
@@ -1148,7 +1166,7 @@ export function EnvironmentProviderSettings({
                   <NumberFieldIncrement aria-label="Increase provider health check interval" />
                 </NumberFieldGroup>
               </NumberField>
-              <span className="text-xs text-muted-foreground">seconds</span>
+              <span className="text-xs text-muted-foreground">{t("seconds", "秒")}</span>
             </div>
           }
         />
