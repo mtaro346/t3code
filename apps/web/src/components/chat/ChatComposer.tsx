@@ -3424,6 +3424,10 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                   showMobilePendingAnswerActions && "hidden sm:flex",
                 )}
               >
+                {/* Attach sits at the start of the row, its icon in line with the prompt text. */}
+                {composerAttachButton ? (
+                  <div className="-ms-1.5 me-2">{composerAttachButton}</div>
+                ) : null}
                 <div
                   data-chat-composer-actions="right"
                   data-chat-composer-transition-actions="true"
@@ -3432,17 +3436,13 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                   }
                   className="flex min-w-0 flex-1 flex-nowrap items-center justify-end gap-2"
                 >
-                  {/* Controls and attach share one gap, so the icons keep one rhythm. */}
-                  <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5">
-                    <div
-                      ref={attachExpandedComposerControls}
-                      data-chat-composer-controls="footer"
-                      data-chat-composer-footer-controls="true"
-                      className="relative flex min-w-0 flex-1 items-center justify-end gap-0.5"
-                    >
-                      {composerControls}
-                    </div>
-                    {composerAttachButton}
+                  <div
+                    ref={attachExpandedComposerControls}
+                    data-chat-composer-controls="footer"
+                    data-chat-composer-footer-controls="true"
+                    className="relative flex min-w-0 flex-1 items-center justify-end gap-0.5"
+                  >
+                    {composerControls}
                   </div>
                   <ComposerFooterPrimaryActions
                     compact={isComposerPrimaryActionsCompact}
