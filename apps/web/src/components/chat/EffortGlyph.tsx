@@ -2,7 +2,13 @@ import type { ProviderOptionDescriptor } from "@t3tools/contracts";
 
 import type { ComposerControlSize } from "./ComposerControl";
 
-const GLYPH_HEIGHT_SM = 14;
+// Experiment: localStorage "t3:glyph" = "<height>" or "<height>:<lift>", for example "12:1".
+const [GLYPH_EXPERIMENT_HEIGHT, GLYPH_EXPERIMENT_LIFT] = (
+  (typeof localStorage === "undefined" ? null : localStorage.getItem("t3:glyph")) ?? ""
+)
+  .split(":")
+  .map(Number);
+const GLYPH_HEIGHT_SM = GLYPH_EXPERIMENT_HEIGHT || 14;
 const GLYPH_HEIGHT_XS = 12;
 
 type SelectDescriptor = Extract<ProviderOptionDescriptor, { type: "select" }>;
@@ -50,7 +56,13 @@ export function EffortGlyph(props: { count: number; filled: number; size?: Compo
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       // Inline size: the composer control CSS forces unsized SVGs to 16px.
-      style={{ width, height }}
+      style={{
+        width,
+        height,
+        ...(props.size !== "xs" && GLYPH_EXPERIMENT_LIFT
+          ? { transform: `translateY(-${GLYPH_EXPERIMENT_LIFT}px)` }
+          : {}),
+      }}
       // Centered like the icons beside it, so its flat bottom lines up with theirs.
       className="shrink-0 text-current"
       data-composer-effort-glyph
