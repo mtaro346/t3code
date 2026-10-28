@@ -513,10 +513,14 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
 
 /** One bolt for Fast. Ultrafast adds an outlined echo behind it, cut away by the surface color. */
 function FastBolt(props: { ultra: boolean }) {
-  if (!props.ultra) return <ZapIcon aria-hidden="true" className="size-3 shrink-0 fill-current" />;
+  if (!props.ultra) {
+    return (
+      <ZapIcon aria-hidden="true" data-composer-control-icon className="size-3 fill-current" />
+    );
+  }
   return (
-    <span aria-hidden="true" className="relative h-3 w-4 shrink-0">
-      <ZapIcon className="absolute top-0 left-1 size-3" />
+    <span aria-hidden="true" className="relative h-3 w-3.75 shrink-0">
+      <ZapIcon className="absolute top-0 left-0.75 size-3" />
       <ZapIcon
         strokeWidth={4}
         className="absolute top-0 left-0 size-3 fill-current stroke-(--chat-composer-glass-surface) [paint-order:stroke]"
@@ -646,9 +650,9 @@ export const TraitsPicker = memo(function TraitsPicker({
                       ? "min-w-0 max-w-40 shrink justify-start overflow-hidden whitespace-nowrap sm:max-w-48"
                       : "shrink-0 whitespace-nowrap",
                     triggerClassName,
-                    // A word reads on from the model name, "Opus 5.5 High", at the same space as
+                    // Effort reads on from the model name, "Opus 5.5 High", at about the space
                     // inside the name: this cancels the model chip's end padding and the row gap.
-                    effortWord !== null && "-ms-1 ps-0",
+                    isComposerOwned && (effortWord !== null ? "-ms-1 ps-0" : "-ms-1 ps-0.5"),
                   )}
                 />
               }

@@ -64,6 +64,8 @@ export function EffortGlyph(props: { count: number; filled: number; size?: Compo
       style={{ width, height }}
       className="shrink-0 text-current"
       data-composer-effort-glyph
+      // Opts out of the control's negative icon margins, so the row's gaps stay true.
+      data-composer-control-icon
     >
       {effortBarHeights(props.count, maxBar).map((barHeight, index) => {
         const x = index * step;
