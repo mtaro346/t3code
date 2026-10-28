@@ -25,7 +25,7 @@ import {
   normalizeModelSlug,
 } from "@t3tools/shared/model";
 import { memo, type ReactNode, useRef } from "react";
-import { FlameIcon, GaugeIcon, ZapIcon } from "lucide-react";
+import { FlameIcon, GaugeIcon } from "lucide-react";
 import {
   Menu,
   MenuGroup,
@@ -43,7 +43,7 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { ComposerControl, ComposerControlIcon, type ComposerControlSize } from "./ComposerControl";
 import { focusRequestedPermission, useComposerMenuProps } from "./composerEventScope";
 import { useComposerMenuState } from "./useComposerMenuState";
-import { EffortGlyph, resolveEffortGlyph } from "./EffortGlyph";
+import { EffortGlyph, resolveEffortGlyph, SpeedLines } from "./EffortGlyph";
 
 type ProviderOptions = ReadonlyArray<ProviderOptionSelection>;
 
@@ -580,7 +580,7 @@ export const TraitsPicker = memo(function TraitsPicker({
   const isCodexStyle = provider === "codex";
   // In the composer the glyph has no word, so the tooltip and label name the control.
   const triggerDescription = isComposerOwned
-    ? [`Effort: ${triggerLabel}`, extraMenuHint].filter(Boolean).join(" · ")
+    ? [`Effort: ${triggerLabel}`, speedLabel, extraMenuHint].filter(Boolean).join(" · ")
     : triggerLabel;
   const effortGlyph =
     isComposerOwned &&
@@ -599,7 +599,7 @@ export const TraitsPicker = memo(function TraitsPicker({
       : null;
   // Workflow levels such as Ultracode always show their name; the setting names every level.
   const effortWord = effortGlyph
-    ? (effortGlyph.special ?? (effortDisplay === "label" ? triggerLabel : null))
+    ? (effortGlyph.special ?? (effortDisplay === "label" ? effortGlyph.label : null))
     : null;
 
   return (
@@ -640,6 +640,9 @@ export const TraitsPicker = memo(function TraitsPicker({
         >
           {effortGlyph ? (
             <span className="flex items-center gap-1.5">
+              {speedLabel === "Fast" || speedLabel === "Ultrafast" ? (
+                <SpeedLines speed={speedLabel} size={size} />
+              ) : null}
               {effortWord === null ? (
                 <EffortGlyph count={effortGlyph.count} filled={effortGlyph.filled} size={size} />
               ) : null}
@@ -666,12 +669,6 @@ export const TraitsPicker = memo(function TraitsPicker({
                   {triggerLabel}
                 </span>
               )}
-              {speedLabel ? (
-                <span aria-hidden="true" className="flex items-center -space-x-1">
-                  <ZapIcon className="size-3 fill-current" />
-                  {speedLabel === "Ultrafast" ? <ZapIcon className="size-3 fill-current" /> : null}
-                </span>
-              ) : null}
               {otherLabels.length > 0 ? (
                 <span
                   aria-hidden="true"

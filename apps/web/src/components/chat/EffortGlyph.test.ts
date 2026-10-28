@@ -22,6 +22,7 @@ describe("resolveEffortGlyph", () => {
       filled: 3,
       special: null,
       maxed: false,
+      label: "Xhigh",
     });
   });
 
@@ -31,6 +32,7 @@ describe("resolveEffortGlyph", () => {
       filled: 3,
       special: "Max",
       maxed: true,
+      label: "Max",
     });
   });
 
@@ -47,6 +49,7 @@ describe("resolveEffortGlyph", () => {
       filled: 0,
       special: null,
       maxed: false,
+      label: "Off",
     });
   });
 

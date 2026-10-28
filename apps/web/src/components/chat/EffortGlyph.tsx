@@ -33,6 +33,7 @@ export function resolveEffortGlyph(descriptor: SelectDescriptor, current: string
       filled: levels.length - 1,
       special: label,
       maxed: MAX_LEVELS.has(current),
+      label,
     };
   }
   const index = levels.findIndex((option) => option.id === current);
@@ -42,6 +43,7 @@ export function resolveEffortGlyph(descriptor: SelectDescriptor, current: string
     filled: index,
     special: null,
     maxed: false,
+    label: levels[index]!.label,
   };
 }
 
@@ -86,6 +88,49 @@ export function EffortGlyph(props: { count: number; filled: number; size?: Compo
           />
         );
       })}
+    </svg>
+  );
+}
+
+// Right-aligned streaks [y, length] trailing whatever follows them, like motion lines.
+const SPEED_LINES = {
+  Fast: [
+    [4, 5],
+    [8, 8],
+  ],
+  Ultrafast: [
+    [2.5, 5],
+    [6, 8],
+    [9.5, 6],
+  ],
+} as const;
+const SPEED_LINE_WEIGHT = 1.5;
+
+/** Speed lines drawn before the effort bars or word while a fast tier is on. */
+export function SpeedLines(props: { speed: "Fast" | "Ultrafast"; size?: ComposerControlSize }) {
+  const height = props.size === "xs" ? GLYPH_HEIGHT_XS : GLYPH_HEIGHT_SM;
+  const width = 8;
+  return (
+    <svg
+      aria-hidden="true"
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      style={{ width, height }}
+      className="-me-0.5 shrink-0 text-current"
+      data-composer-speed-lines
+    >
+      {SPEED_LINES[props.speed].map(([y, length]) => (
+        <rect
+          key={y}
+          x={width - length}
+          y={y}
+          width={length}
+          height={SPEED_LINE_WEIGHT}
+          rx={SPEED_LINE_WEIGHT / 2}
+          fill="currentColor"
+        />
+      ))}
     </svg>
   );
 }
