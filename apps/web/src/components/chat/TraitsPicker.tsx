@@ -25,7 +25,7 @@ import {
   normalizeModelSlug,
 } from "@t3tools/shared/model";
 import { memo, type ReactNode, useRef } from "react";
-import { FlameIcon, GaugeIcon } from "lucide-react";
+import { GaugeIcon, ZapIcon } from "lucide-react";
 import {
   Menu,
   MenuGroup,
@@ -43,7 +43,7 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { ComposerControl, ComposerControlIcon, type ComposerControlSize } from "./ComposerControl";
 import { focusRequestedPermission, useComposerMenuProps } from "./composerEventScope";
 import { useComposerMenuState } from "./useComposerMenuState";
-import { EffortGlyph, resolveEffortGlyph, SpeedLines } from "./EffortGlyph";
+import { EffortGlyph, resolveEffortGlyph } from "./EffortGlyph";
 
 type ProviderOptions = ReadonlyArray<ProviderOptionSelection>;
 
@@ -511,6 +511,20 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
   );
 });
 
+/** One bolt for Fast; Ultrafast stacks a second behind it, outlined in the surface color. */
+function FastBolt(props: { ultra: boolean }) {
+  if (!props.ultra) return <ZapIcon aria-hidden="true" className="size-3 shrink-0 fill-current" />;
+  return (
+    <span aria-hidden="true" className="relative h-3 w-4.5 shrink-0">
+      <ZapIcon className="absolute top-0 left-1.5 size-3 fill-current" />
+      <ZapIcon
+        strokeWidth={4}
+        className="absolute top-0 left-0 size-3 fill-current stroke-(--chat-composer-glass-surface) [paint-order:stroke]"
+      />
+    </span>
+  );
+}
+
 export const TraitsPicker = memo(function TraitsPicker({
   provider,
   instanceId,
@@ -632,6 +646,8 @@ export const TraitsPicker = memo(function TraitsPicker({
                       ? "min-w-0 max-w-40 shrink justify-start overflow-hidden whitespace-nowrap sm:max-w-48"
                       : "shrink-0 whitespace-nowrap",
                     triggerClassName,
+                    // A word reads on from the model name, "Opus 5.5 High", at a normal word space.
+                    effortWord !== null && "ps-0",
                   )}
                 />
               }
@@ -641,20 +657,14 @@ export const TraitsPicker = memo(function TraitsPicker({
           {effortGlyph ? (
             <span className="flex items-center gap-1.5">
               {speedLabel === "Fast" || speedLabel === "Ultrafast" ? (
-                <SpeedLines speed={speedLabel} size={size} />
+                <FastBolt ultra={speedLabel === "Ultrafast"} />
               ) : null}
               {effortWord === null ? (
                 <EffortGlyph count={effortGlyph.count} filled={effortGlyph.filled} size={size} />
               ) : null}
               {effortWord !== null ? (
                 <>
-                  {effortGlyph.maxed ? (
-                    <FlameIcon aria-hidden="true" className="size-3.5 shrink-0 text-warning" />
-                  ) : null}
-                  <span
-                    data-composer-control-label
-                    className={effortGlyph.maxed ? "text-warning" : undefined}
-                  >
+                  <span data-composer-control-label className="text-muted-foreground">
                     {effortWord}
                   </span>
                   {/* Icon-only footers hide labels and reveal this instead. */}

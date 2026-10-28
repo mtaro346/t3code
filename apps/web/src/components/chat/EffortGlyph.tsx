@@ -10,39 +10,30 @@ const BASELINE_INSET = 2;
 type SelectDescriptor = Extract<ProviderOptionDescriptor, { type: "select" }>;
 
 // Ultracode changes the workflow, not only intensity, so it keeps its name like Ultrathink.
-const WORKFLOW_LEVELS = new Set(["ultracode"]);
-// Max is named, not drawn as a full scale, so it reads as a cost rather than a goal.
-const MAX_LEVELS = new Set(["max"]);
+// Max is named too, so the full scale stops short of it.
+const NAMED_LEVELS = new Set(["ultracode", "max"]);
+const OFF_LEVELS = new Set(["off", "none"]);
 
 /**
- * Maps a reasoning select to bars: the lowest level is no filled bars, each level above fills one.
- * Max, prompt-injected, and workflow levels (Ultrathink, Ultracode) are named instead of drawn.
+ * Maps a reasoning select to bars: one per ordinary level, filled up to the current one, with an
+ * off level as none filled. Max, prompt-injected and workflow levels are named instead of drawn.
  */
 export function resolveEffortGlyph(descriptor: SelectDescriptor, current: string | null) {
-  const special = new Set([
-    ...(descriptor.promptInjectedValues ?? []),
-    ...WORKFLOW_LEVELS,
-    ...MAX_LEVELS,
-  ]);
+  const special = new Set([...(descriptor.promptInjectedValues ?? []), ...NAMED_LEVELS]);
   const levels = descriptor.options.filter((option) => !special.has(option.id));
   if (levels.length < 2 || current === null) return null;
+  const startsAtOff = OFF_LEVELS.has(levels[0]!.id);
+  const count = startsAtOff ? levels.length - 1 : levels.length;
   if (special.has(current)) {
     const label = descriptor.options.find((option) => option.id === current)?.label ?? current;
-    return {
-      count: levels.length - 1,
-      filled: levels.length - 1,
-      special: label,
-      maxed: MAX_LEVELS.has(current),
-      label,
-    };
+    return { count, filled: count, special: label, label };
   }
   const index = levels.findIndex((option) => option.id === current);
   if (index < 0) return null;
   return {
-    count: levels.length - 1,
-    filled: index,
+    count,
+    filled: startsAtOff ? index : index + 1,
     special: null,
-    maxed: false,
     label: levels[index]!.label,
   };
 }
@@ -88,49 +79,6 @@ export function EffortGlyph(props: { count: number; filled: number; size?: Compo
           />
         );
       })}
-    </svg>
-  );
-}
-
-// Right-aligned streaks [y, length] trailing whatever follows them, like motion lines.
-const SPEED_LINES = {
-  Fast: [
-    [4, 5],
-    [8, 8],
-  ],
-  Ultrafast: [
-    [2.5, 5],
-    [6, 8],
-    [9.5, 6],
-  ],
-} as const;
-const SPEED_LINE_WEIGHT = 1.5;
-
-/** Speed lines drawn before the effort bars or word while a fast tier is on. */
-export function SpeedLines(props: { speed: "Fast" | "Ultrafast"; size?: ComposerControlSize }) {
-  const height = props.size === "xs" ? GLYPH_HEIGHT_XS : GLYPH_HEIGHT_SM;
-  const width = 8;
-  return (
-    <svg
-      aria-hidden="true"
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      style={{ width, height }}
-      className="-me-0.5 shrink-0 text-current"
-      data-composer-speed-lines
-    >
-      {SPEED_LINES[props.speed].map(([y, length]) => (
-        <rect
-          key={y}
-          x={width - length}
-          y={y}
-          width={length}
-          height={SPEED_LINE_WEIGHT}
-          rx={SPEED_LINE_WEIGHT / 2}
-          fill="currentColor"
-        />
-      ))}
     </svg>
   );
 }

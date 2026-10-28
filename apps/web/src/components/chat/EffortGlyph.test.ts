@@ -18,22 +18,15 @@ describe("resolveEffortGlyph", () => {
 
   it("fills bars up to the current level and leaves max and workflow levels off the scale", () => {
     expect(resolveEffortGlyph(claude, "xhigh")).toEqual({
-      count: 3,
-      filled: 3,
+      count: 4,
+      filled: 4,
       special: null,
-      maxed: false,
       label: "Xhigh",
     });
   });
 
-  it("names max instead of drawing it, flagged so the composer can warn", () => {
-    expect(resolveEffortGlyph(claude, "max")).toEqual({
-      count: 3,
-      filled: 3,
-      special: "Max",
-      maxed: true,
-      label: "Max",
-    });
+  it("names max instead of drawing it", () => {
+    expect(resolveEffortGlyph(claude, "max")?.special).toBe("Max");
   });
 
   it("names Ultracode and Ultrathink instead of drawing a level", () => {
@@ -41,14 +34,13 @@ describe("resolveEffortGlyph", () => {
     expect(resolveEffortGlyph(claude, "ultrathink")?.special).toBe("Ultrathink");
   });
 
-  it("draws the lowest level as zero filled bars", () => {
-    expect(resolveEffortGlyph(claude, "low")).toMatchObject({ count: 3, filled: 0 });
-    expect(resolveEffortGlyph(claude, "medium")).toMatchObject({ count: 3, filled: 1 });
+  it("draws the lowest level as one bar, and an off level as none", () => {
+    expect(resolveEffortGlyph(claude, "low")).toMatchObject({ count: 4, filled: 1 });
+    expect(resolveEffortGlyph(claude, "medium")).toMatchObject({ count: 4, filled: 2 });
     expect(resolveEffortGlyph(descriptor(["off", "low", "high"]), "off")).toEqual({
       count: 2,
       filled: 0,
       special: null,
-      maxed: false,
       label: "Off",
     });
   });
