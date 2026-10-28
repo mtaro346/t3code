@@ -20,9 +20,6 @@ export function useComposerMenuProps() {
           if (activeElement !== document.body && !isInsideComposerFloatingLayer(activeElement)) {
             return false;
           }
-          // A compacted composer stays compacted: focus goes back to the trigger in its row
-          // (resting scope), not the editor, which would expand it.
-          if (composerRef.current?.isResting()) return true;
           composerRef.current?.focusAtEnd();
           return false;
         }

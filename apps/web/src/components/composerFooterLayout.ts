@@ -2,26 +2,6 @@ const COMPOSER_FOOTER_COMPACT_BREAKPOINT_PX = 620;
 const COMPOSER_FOOTER_WIDE_ACTIONS_COMPACT_BREAKPOINT_PX = 780;
 const RESTING_COMPOSER_IMAGE_THUMBNAIL_LIMIT = 3;
 
-// Layout experiment. Pick one with localStorage "t3:composerLayout", then reload.
-// "one-row": no scroll collapse. The one-row composer is the default and grows when text wraps,
-// with the controls staying on the right.
-// "grouped": always two rows. Model and effort sit beside attach and send.
-export const COMPOSER_LAYOUT = (() => {
-  const value =
-    typeof localStorage === "undefined" ? null : localStorage.getItem("t3:composerLayout");
-  return value === "one-row" || value === "grouped" ? value : "current";
-})();
-
-const GROUP_STYLES = ["left", "right", "right-mono", "right-icons", "no-logo"] as const;
-// Grouped renditions, from localStorage "t3:composerGroup". Default "right".
-// left: logo before the label. right: logo after it. right-mono: grey logo.
-// right-icons: grey logo, muted label, icon-only permissions. no-logo: label only.
-export const COMPOSER_GROUP_STYLE = (() => {
-  const value =
-    typeof localStorage === "undefined" ? null : localStorage.getItem("t3:composerGroup");
-  return GROUP_STYLES.find((style) => style === value) ?? "right";
-})();
-
 export function getRestingComposerImagePreviewCounts(imageCount: number): {
   visibleCount: number;
   overflowCount: number;
@@ -41,54 +21,6 @@ export function shouldUseCompactComposerFooter(
     ? COMPOSER_FOOTER_WIDE_ACTIONS_COMPACT_BREAKPOINT_PX
     : COMPOSER_FOOTER_COMPACT_BREAKPOINT_PX;
   return width !== null && width < breakpoint;
-}
-
-export function shouldUseRestingComposerLayout(input: {
-  isExistingThread: boolean;
-  isMobileViewport: boolean;
-  isScrollCollapsed: boolean;
-  hasExpandedChrome: boolean;
-  hasMultilinePrompt: boolean;
-  timelineOverflows: boolean;
-}): boolean {
-  return (
-    input.isExistingThread &&
-    !input.isMobileViewport &&
-    input.timelineOverflows &&
-    input.isScrollCollapsed &&
-    !input.hasMultilinePrompt &&
-    !input.hasExpandedChrome
-  );
-}
-
-/**
- * How much taller the empty expanded composer is than its resting row on
- * desktop widths, from the layout classes in ChatComposer: the body loses
- * 8px of top padding, the prompt clamps from min-h-17.5 (70px) to 32px, and
- * the 48px footer leaves flow.
- */
-const COMPOSER_RESTING_EXPANSION_MIN_PX = 94;
-
-/** Reserve expansion height because the timeline does not move when footer growth covers its last rows. */
-export function resolveComposerTimelineInset(input: {
-  currentInset: number;
-  overlayHeight: number;
-  isResting: boolean;
-}): number {
-  const overlayHeight = Math.ceil(input.overlayHeight);
-  return input.isResting && COMPOSER_LAYOUT === "current"
-    ? Math.max(
-        input.currentInset,
-        overlayHeight + (input.currentInset === 0 ? COMPOSER_RESTING_EXPANSION_MIN_PX : 0),
-      )
-    : overlayHeight;
-}
-
-export function overlayComposerIsResting(input: {
-  composerMounted: boolean;
-  composerReportedResting: boolean;
-}): boolean {
-  return input.composerMounted && input.composerReportedResting;
 }
 
 export function shouldAnimateComposerRestingTransition(input: {

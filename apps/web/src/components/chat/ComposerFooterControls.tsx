@@ -14,7 +14,6 @@ import { Menu, MenuPopup, MenuTrigger } from "../ui/menu";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { ComposerControl, ComposerControlIcon } from "./ComposerControl";
 import { focusRequestedPermission, useComposerMenuProps } from "./composerEventScope";
-import { useComposerHandleContext } from "../../composerHandleContext";
 import { ComposerPrimaryActions } from "./ComposerPrimaryActions";
 import { ContextWindowMeter, ContextWindowMeterPlaceholder } from "./ContextWindowMeter";
 import { resolveModelPickerSelectedModel } from "./ModelPickerContent";
@@ -38,8 +37,6 @@ export const ComposerFooterModeControls = memo(function ComposerFooterModeContro
   accessDisplay?: "label" | "icon" | "hidden";
   /** Draw the icon in the label color, not muted (the mode differs from the user's default). */
   emphasized?: boolean;
-  /** Choosing this mode hides the chip, so focus moves to the effort chip. */
-  defaultRuntimeMode?: RuntimeMode | undefined;
   onToggleInteractionMode: () => void;
   onRuntimeModeChange: (mode: RuntimeMode) => void;
 }) {
@@ -48,7 +45,6 @@ export const ComposerFooterModeControls = memo(function ComposerFooterModeContro
   const composerFloatingLayerProps = useComposerMenuProps();
   const [open, setOpen] = useComposerMenuState(props.hidden);
   const permissionsChipRef = useRef<HTMLButtonElement>(null);
-  const composerRef = useComposerHandleContext();
   const runtimeModeOption =
     props.runtimeModeOptions.find((option) => option.mode === props.runtimeMode) ??
     supervisedRuntimeModeOption;
@@ -143,22 +139,7 @@ export const ComposerFooterModeControls = memo(function ComposerFooterModeContro
         <ComposerPermissionsSection
           runtimeMode={props.runtimeMode}
           runtimeModeOptions={props.runtimeModeOptions}
-          onRuntimeModeChange={(mode) => {
-            // Expanded: closing returns focus to the editor (composer menu rule). Compacted: it
-            // returns to this chip, so when the chip hides, hand focus to the effort chip, which
-            // keeps Permissions. Read the shell first: picking the default unmounts this chip.
-            const handOff =
-              mode === props.defaultRuntimeMode && composerRef?.current?.isResting() === true;
-            const shell = permissionsChipRef.current?.closest('[data-slot="composer-shell"]');
-            props.onRuntimeModeChange(mode);
-            if (handOff) {
-              window.requestAnimationFrame(() =>
-                shell
-                  ?.querySelector<HTMLElement>('[data-composer-shortcut~="composer.effort"]')
-                  ?.focus({ preventScroll: true }),
-              );
-            }
-          }}
+          onRuntimeModeChange={props.onRuntimeModeChange}
         />
       </MenuPopup>
     </Menu>

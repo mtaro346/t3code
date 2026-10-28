@@ -88,14 +88,14 @@ it("marks the current mode as checked and closes on Escape", async () => {
 });
 
 // The real composer menu focus rule (useComposerMenuProps), with a stub composer handle.
-function withComposer(resting: boolean, children: ReactNode) {
-  const handle = { isResting: () => resting, focusAtEnd: vi.fn() };
+function withComposer(children: ReactNode) {
+  const handle = { focusAtEnd: vi.fn() };
   const ref = { current: handle } as unknown as ComposerHandleRef;
   return { handle, ui: <ComposerHandleContext value={ref}>{children}</ComposerHandleContext> };
 }
 
-it("returns focus to the editor after a pick in the expanded composer", async () => {
-  const { handle, ui } = withComposer(false, <EffortMenu />);
+it("returns focus to the editor after a pick", async () => {
+  const { handle, ui } = withComposer(<EffortMenu />);
   await using screen = await render(ui, { router: false }); // no routes involved
   await userEvent.tab();
   await userEvent.keyboard("{ArrowDown}");
@@ -103,23 +103,6 @@ it("returns focus to the editor after a pick in the expanded composer", async ()
   await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
   await expect.element(screen.getByRole("status")).toHaveTextContent("approval-required");
   await vi.waitFor(() => expect(handle.focusAtEnd).toHaveBeenCalled());
-});
-
-it("keeps a compacted composer compacted: focus goes back to the trigger", async () => {
-  const { handle, ui } = withComposer(true, <EffortMenu />);
-  await using screen = await render(ui, { router: false }); // no routes involved
-  const trigger = screen.getByRole("button", { name: "Effort" });
-  await userEvent.tab();
-  await userEvent.keyboard("{ArrowDown}");
-  await expect.element(page.getByRole("menuitemradio", { name: "Low" })).toHaveFocus();
-  await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
-  await expect.element(screen.getByRole("status")).toHaveTextContent("approval-required");
-  await expect.element(trigger).toHaveFocus();
-  await userEvent.keyboard("{ArrowDown}");
-  await expect.element(page.getByRole("menuitemradio", { name: "Low" })).toHaveFocus();
-  await userEvent.keyboard("{Escape}");
-  await expect.element(trigger).toHaveFocus();
-  expect(handle.focusAtEnd).not.toHaveBeenCalled();
 });
 
 it("opens on the checked permission when composer.mode marked the trigger", async () => {
@@ -150,7 +133,6 @@ function PermissionsChip() {
           runtimeMode={mode}
           runtimeModeOptions={options}
           accessDisplay="label"
-          defaultRuntimeMode="full-access"
           onToggleInteractionMode={() => {}}
           onRuntimeModeChange={setMode}
         />
@@ -159,20 +141,8 @@ function PermissionsChip() {
   );
 }
 
-it("hands focus to the effort chip when picking the default hides the chip (compacted)", async () => {
-  const { handle, ui } = withComposer(true, <PermissionsChip />);
-  await using screen = await render(ui, { router: false }); // no routes involved
-  await userEvent.click(screen.getByRole("button", { name: "Permissions: Supervised" }));
-  await userEvent.click(page.getByRole("menuitemradio", { name: "Full access" }));
-  await expect
-    .element(screen.getByRole("button", { name: "Permissions: Supervised" }))
-    .not.toBeInTheDocument();
-  await expect.element(screen.getByRole("button", { name: "Effort" })).toHaveFocus();
-  expect(handle.focusAtEnd).not.toHaveBeenCalled();
-});
-
-it("leaves focus to the editor rule when picking the default in the expanded composer", async () => {
-  const { handle, ui } = withComposer(false, <PermissionsChip />);
+it("returns focus to the editor when picking the default hides the chip", async () => {
+  const { handle, ui } = withComposer(<PermissionsChip />);
   await using screen = await render(ui, { router: false }); // no routes involved
   await userEvent.click(screen.getByRole("button", { name: "Permissions: Supervised" }));
   await userEvent.click(page.getByRole("menuitemradio", { name: "Full access" }));

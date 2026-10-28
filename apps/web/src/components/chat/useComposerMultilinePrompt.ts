@@ -6,12 +6,10 @@ function measureComposerMultilinePrompt(body: HTMLElement): boolean | null {
   if (!editor || editor.clientWidth === 0) return null;
 
   const bodyStyle = getComputedStyle(body);
-  // The one-row layout reserves room for its inline actions, so text wraps before them.
   const expandedWidth =
     body.clientWidth -
     Number.parseFloat(bodyStyle.paddingLeft) -
-    Number.parseFloat(bodyStyle.paddingRight) -
-    Number(body.dataset.inlineReserve ?? 0);
+    Number.parseFloat(bodyStyle.paddingRight);
   const lineHeight = Number.parseFloat(getComputedStyle(editor).lineHeight);
   const range = document.createRange();
   range.selectNodeContents(editor);

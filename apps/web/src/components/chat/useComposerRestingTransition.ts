@@ -8,7 +8,6 @@ const COMPOSER_RESTING_CONTROLS_ARRIVAL_DRIFT_PX = 4;
 
 export function useComposerRestingTransition(
   isCollapsed: boolean,
-  isResting: boolean,
   restingControlsRef: React.RefObject<HTMLDivElement | null>,
   onOverlayHeightChange: (height: number) => void,
   animationsActive: boolean,
@@ -17,7 +16,6 @@ export function useComposerRestingTransition(
   const elementRef = useRef<HTMLDivElement>(null);
   const isCollapsedRef = useRef(isCollapsed);
   const previousCollapsedRef = useRef(isCollapsed);
-  const previousRestingRef = useRef(isResting);
   const previousHeightRef = useRef<number | null>(null);
   const previousContentOffsetsRef = useRef<{
     promptFromTop: number | null;
@@ -94,7 +92,7 @@ export function useComposerRestingTransition(
     const continuousControls = element.dataset.inlineRestingControls === "true";
     const controls = nextIsCollapsed
       ? restingControlsRef.current
-      : element.querySelector<HTMLElement>('[data-chat-composer-controls="left"]');
+      : element.querySelector<HTMLElement>('[data-chat-composer-controls="footer"]');
 
     const interruptedAnimation = animationRef.current;
     const interruptedPromptTop = interruptedAnimation
@@ -287,7 +285,7 @@ export function useComposerRestingTransition(
 
         const arrivingControls = nextIsCollapsed
           ? restingControlsRef.current
-          : element.querySelector<HTMLElement>('[data-chat-composer-controls="left"]');
+          : element.querySelector<HTMLElement>('[data-chat-composer-controls="footer"]');
         if (arrivingControls && !continuousControls) {
           const drift = nextIsCollapsed
             ? -COMPOSER_RESTING_CONTROLS_ARRIVAL_DRIFT_PX
@@ -393,14 +391,6 @@ export function useComposerRestingTransition(
   }, [isCollapsed, transitionToCurrentGeometry]);
 
   useLayoutEffect(() => {
-    if (previousRestingRef.current === isResting) return;
-    previousRestingRef.current = isResting;
-    if (animationRef.current) return;
-    const overlay = elementRef.current?.closest<HTMLElement>('[data-chat-composer-overlay="true"]');
-    if (overlay) onOverlayHeightChange(overlay.getBoundingClientRect().height);
-  }, [isResting, onOverlayHeightChange]);
-
-  useLayoutEffect(() => {
     const element = elementRef.current;
     if (!element) return;
 
@@ -426,7 +416,7 @@ export function useComposerRestingTransition(
       const controlsRect = (
         isCollapsedRef.current
           ? restingControlsRef.current
-          : visibleTransitionElement('[data-chat-composer-controls="left"]')
+          : visibleTransitionElement('[data-chat-composer-controls="footer"]')
       )?.getBoundingClientRect();
       previousHeightRef.current = elementRect.height;
       previousContentOffsetsRef.current = {
