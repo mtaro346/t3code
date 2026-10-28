@@ -1,5 +1,5 @@
 # Japanese fork release: a `vX.Y.Z-ja` tag builds the unsigned macOS app and publishes it.
-# The desktop updater reads this repository's latest release (GITHUB_REPOSITORY).
+# Squirrel.Mac cannot apply updates to unsigned apps, so the build ships without an update feed.
 name: Release (ja)
 
 on:
@@ -64,6 +64,7 @@ jobs:
 
       - name: Build macOS app
         run: |
+          env -u GITHUB_REPOSITORY -u T3CODE_DESKTOP_UPDATE_REPOSITORY \
           vp run dist:desktop:artifact \
             --platform mac --target dmg --arch arm64 \
             --build-version "${{ steps.version.outputs.version }}" \
@@ -74,9 +75,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           shopt -s nullglob
-          assets=(release/*.dmg release/*.zip release/*.blockmap release/latest-mac.yml)
+          assets=(release/*.dmg)
           (( ${#assets[@]} > 0 )) || { echo "No release assets found" >&2; ls -la release; exit 1; }
-          notes="公式 [v${{ steps.version.outputs.version }}](https://github.com/pingdotgg/t3code/releases/tag/v${{ steps.version.outputs.version }}) の日本語版です。署名していないため、初回は Finder でアプリを右クリックして「開く」を選んでください。"
+          notes="公式 [v${{ steps.version.outputs.version }}](https://github.com/pingdotgg/t3code/releases/tag/v${{ steps.version.outputs.version }}) の日本語版です。署名していないため、初回は Finder でアプリを右クリックして「開く」を選んでください。アプリ内の自動更新は使えないので、新しい版はこのページから dmg をダウンロードしてください。"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "${assets[@]}" --clobber
           else

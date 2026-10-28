@@ -10,6 +10,7 @@ const dictionary = {
   "Don't show this again": "今後表示しない",
   "Delete thread": "スレッドを削除",
   Files: "ファイル",
+  Copy: "コピー",
   default: "既定",
 };
 const run = (code: string, compared: ReadonlySet<string> = new Set()) =>
@@ -46,6 +47,21 @@ NodeAssert.equal(run(`types.includes("Files");`), `types.includes("Files");`);
 NodeAssert.equal(run(`const a = { type: "Save" };`), `const a = { type: "Save" };`);
 NodeAssert.equal(run(`const label = "Files";`, new Set(["Files"])), `const label = "Files";`);
 NodeAssert.equal(run(`import x from "Save";`), `import x from "Save";`);
+NodeAssert.equal(run(`const codes = ["Copy", "Save"];`), `const codes = ["Copy", "Save"];`);
+NodeAssert.equal(run(`<b>{done ? "Copy" : "Save"}</b>`), `<b>{done ? "コピー" : "保存"}</b>`);
+NodeAssert.equal(
+  run(`const a = { label: on ? "Copy" : x };`),
+  `const a = { label: on ? "コピー" : x };`,
+);
+NodeAssert.equal(run(`<b>{f("Copy")}</b>`), `<b>{f("Copy")}</b>`);
+NodeAssert.equal(
+  run(`<V routeKind="Save" mode={x ? "Save" : "Copy"} />`),
+  `<V routeKind="Save" mode={x ? "Save" : "Copy"} />`,
+);
+NodeAssert.equal(
+  run(`<V trigger={<b>Save</b>} dismissLabel="Save" />`),
+  `<V trigger={<b>{"保存"}</b>} dismissLabel={"保存"} />`,
+);
 NodeAssert.equal(run(`type A = "Save";`), `type A = "Save";`);
 
 // Untranslated UI text is reported; ids are not.

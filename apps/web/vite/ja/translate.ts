@@ -19,37 +19,6 @@ export interface TranslateResult {
   compared: string[];
 }
 
-const SKIP_ATTRIBUTES = new Set([
-  "className",
-  "id",
-  "key",
-  "href",
-  "to",
-  "src",
-  "type",
-  "name",
-  "value",
-  "defaultValue",
-  "role",
-  "htmlFor",
-  "rel",
-  "target",
-  "method",
-  "variant",
-  "size",
-  "side",
-  "align",
-  "lang",
-  "autoComplete",
-  "inputMode",
-  "d",
-  "transform",
-  "viewBox",
-  "points",
-  "fill",
-  "stroke",
-  "xmlns",
-]);
 const SKIP_PROPERTIES = new Set([
   "id",
   "key",
@@ -70,27 +39,10 @@ const SKIP_PROPERTIES = new Set([
   "_tag",
   "code",
 ]);
-// Properties whose untranslated values are reported as missing; other literals are only
-// replaced when the dictionary already has them.
-const TEXT_PROPERTIES = new Set([
-  "label",
-  "title",
-  "description",
-  "message",
-  "placeholder",
-  "tooltip",
-  "text",
-  "heading",
-  "subtitle",
-  "detail",
-  "hint",
-  "emptyText",
-  "ariaLabel",
-  "confirmLabel",
-  "cancelLabel",
-  "actionLabel",
-  "summary",
-]);
+// JSX attributes and object properties that hold displayed text, e.g. aria-label, title,
+// placeholder, dismissLabel, emptyStateMessage. Other attributes carry ids and modes.
+const TEXT_NAME =
+  /^(aria-(label|description|placeholder|roledescription|valuetext)|alt|title|label|description|placeholder|tooltip|heading|headline|subtitle|message|text|hint|summary|detail|caption|eyebrow)$|(Label|Title|Text|Description|Message|Placeholder|Tooltip|Heading|Headline|Hint|Caption)$/;
 // Arguments to these methods are keys, selectors or comparands, never displayed text.
 const NON_TEXT_METHODS = new Set([
   "includes",
@@ -117,6 +69,14 @@ const NON_TEXT_METHODS = new Set([
   "on",
   "off",
   "emit",
+]);
+const UI_PASSTHROUGH = new Set([
+  "ConditionalExpression",
+  "LogicalExpression",
+  "ParenthesizedExpression",
+  "TSAsExpression",
+  "TSSatisfiesExpression",
+  "TSNonNullExpression",
 ]);
 const COMPARISON_OPERATORS = new Set(["==", "===", "!=", "!==", "in"]);
 const LOOKS_LIKE_TEXT = /[A-Za-z]{2}/;
@@ -281,7 +241,12 @@ export function translateSource(
   };
 
   // Returns true when the node was rewritten as a whole and its children must be skipped.
-  const visit = (node: AstNode, parent: AstNode | undefined, parentKey: string): boolean => {
+  const visit = (
+    node: AstNode,
+    parent: AstNode | undefined,
+    parentKey: string,
+    inUi: boolean,
+  ): boolean => {
     if (
       node.type.startsWith("TS") &&
       node.type !== "TSAsExpression" &&
@@ -315,8 +280,8 @@ export function translateSource(
     if (node.type === "JSXAttribute") {
       const name = attributeName(node);
       const value = node.value as AstNode | null;
-      if (!name || !value || SKIP_ATTRIBUTES.has(name) || /^data-|ClassName$/.test(name))
-        return true;
+      if (!name || !value) return true;
+      if (!TEXT_NAME.test(name)) return false;
       const literal = stringLiteralValue(value);
       if (literal === undefined) return false;
       const translation = dictionary[literal];
@@ -332,19 +297,13 @@ export function translateSource(
       return true;
     }
 
-    const isTextProperty =
-      parent?.type === "Property" &&
-      parentKey === "value" &&
-      TEXT_PROPERTIES.has(propertyName(parent) ?? "");
-
     if (node.type === "TemplateLiteral") {
       if (parent?.type === "TaggedTemplateExpression") return true;
       const key = templateKey(node);
       if (key === undefined || !LOOKS_LIKE_TEXT.test(key)) return false;
       const translation = dictionary[key];
       if (translation !== undefined && replaceTemplate(node, translation)) return true;
-      const isUiTemplate =
-        isTextProperty || parent?.type === "JSXExpressionContainer" || isSentence(key);
+      const isUiTemplate = inUi || isSentence(key);
       if (translation === undefined && isUiTemplate && isReportable(key)) {
         missing.push(key);
       }
@@ -353,18 +312,13 @@ export function translateSource(
 
     const literal = stringLiteralValue(node);
     if (literal === undefined) return false;
-    // Outside JSX and text properties, lowercase single words are usually ids or enum values.
-    const isUiPosition = isTextProperty || parent?.type === "JSXExpressionContainer";
-    if (!isUiPosition && !/^[A-Z]|\s/.test(literal)) return true;
+    // Outside rendered positions, single words are usually ids, keys or enum values.
+    if (!inUi && !isSentence(literal)) return true;
     if (comparedLiterals.has(literal) && parent?.type !== "JSXExpressionContainer") return true;
     const translation = dictionary[literal];
     if (translation !== undefined) {
       edits.push({ start: node.start, end: node.end, text: JSON.stringify(translation) });
-    } else if (
-      (isTextProperty || isSentence(literal)) &&
-      isReportable(literal) &&
-      /[A-Z ]/.test(literal)
-    ) {
+    } else if ((inUi || isSentence(literal)) && isReportable(literal) && /[A-Z ]/.test(literal)) {
       missing.push(literal);
     }
     return true;
@@ -398,18 +352,31 @@ export function translateSource(
     }
   };
 
-  function walk(node: AstNode, parent: AstNode | undefined, parentKey: string): void {
+  // inUi: the value is rendered as is, through JSX or a text property, maybe via a ternary.
+  const childInUi = (node: AstNode, key: string, inUi: boolean): boolean => {
+    if (node.type === "JSXElement" || node.type === "JSXFragment") return key === "children";
+    if (node.type === "JSXAttribute")
+      return key === "value" && TEXT_NAME.test(attributeName(node) ?? "");
+    if (node.type === "JSXExpressionContainer") return inUi;
+    if (node.type === "Property") {
+      return key === "value" && TEXT_NAME.test(propertyName(node) ?? "");
+    }
+    return inUi && UI_PASSTHROUGH.has(node.type) && key !== "test";
+  };
+
+  function walk(node: AstNode, parent: AstNode | undefined, parentKey: string, inUi = false): void {
     if (parent && isSkippedPosition(parent, parentKey)) {
       const literal = stringLiteralValue(node);
       if (literal !== undefined && parentKey !== "source") compared.push(literal);
       return;
     }
-    if (visit(node, parent, parentKey)) return;
+    if (visit(node, parent, parentKey, inUi)) return;
     for (const [key, value] of Object.entries(node)) {
+      const nextInUi = childInUi(node, key, inUi);
       if (Array.isArray(value)) {
-        for (const item of value) if (isNode(item)) walk(item, node, key);
+        for (const item of value) if (isNode(item)) walk(item, node, key, nextInUi);
       } else if (isNode(value)) {
-        walk(value, node, key);
+        walk(value, node, key, nextInUi);
       }
     }
   }

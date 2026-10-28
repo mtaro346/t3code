@@ -14,6 +14,8 @@
 4. `node apps/web/vite/ja/translate.check.ts` と `vp run typecheck`（apps/web）と `vp build`（apps/web）を通す
 5. `git push origin ja` → `git tag vX.Y.Z-ja && git push origin vX.Y.Z-ja`。タグで `Release (ja)` が dmg を作って公開する
 
+配布する dmg は署名していないため、アプリ内の自動更新は無効にしてあります（Squirrel.Mac は署名のないアプリを更新できない）。利用者は Releases から新しい dmg を入れ直します。
+
 `extract.ts` が `[]` を返せば翻訳は完了です。英語のまま残す文言は、値をキーと同じ文字列にします（再抽出されなくなる）。
 
 ## 翻訳ルール
@@ -28,7 +30,8 @@
 
 ## 置き換えの範囲
 
-`translate.ts` は `apps/web/src` と `packages/client-runtime/src` の JSX テキスト、JSX 属性、
-`label` / `title` などのテキスト用プロパティ、文に見える文字列とテンプレートを置き換えます。
+`translate.ts` は `apps/web/src` と `packages/client-runtime/src` の JSX テキスト、表示用の JSX 属性と
+プロパティ（`aria-label`、`title`、`placeholder`、`〜Label` など）、そこから三項演算子などで渡る値、
+大文字で始まる文に見える文字列とテンプレートを置き換えます。それ以外の 1 単語は ID や enum 値とみなして置き換えません。
 比較やキーに使われている文字列（`=== "Files"`、`.includes("Files")` など）は、JSX の外では置き換えません。
 サーバーが返すメッセージ、Electron のネイティブメニュー、モバイルアプリは対象外です。
