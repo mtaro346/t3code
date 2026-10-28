@@ -13,7 +13,18 @@
 3. `node apps/web/vite/ja/extract.ts` で未訳を出し、下のルールで `ja.json` に追加する（キー順を保つ）
 4. `node apps/web/vite/ja/translate.check.ts` と `vp run typecheck`（apps/web）と `vp build`（apps/web）を通す
 5. `git push origin ja` → `git tag -a vX.Y.Z-ja && git push origin vX.Y.Z-ja`
-6. Mac で `apps/web/vite/ja/release.sh vX.Y.Z-ja` を実行する。一時 worktree で arm64 の dmg をビルドし、fork の Releases に公開する（ビルドは GitHub Actions を使わずローカルで行う）
+6. Mac で `apps/web/vite/ja/release.sh vX.Y.Z-ja` を実行する。VMPal のビルド用 VM の使い捨てクローンで arm64 の dmg をビルドし、fork の Releases に公開する。`DRY_RUN=1` を付けるとビルドだけ行う
+
+## ビルド用 VM
+
+`release.sh` は、停止中の macOS VM「T3 Code ja build」を `vmpal run` で複製してビルドし、終わったら複製を消します。
+作り直すときは、VMPal で macOS VM を作り、その中に次のものを入れて停止しておきます。
+
+- Xcode Command Line Tools（`softwareupdate -i "Command Line Tools for Xcode …"`）
+- Node（`package.json` の `engines.node` と同じ版を `~/.local/node` に置き、`~/.zprofile` で PATH を通す）と `npm i -g vite-plus`
+- Rust（rustup、`aarch64-apple-darwin` ターゲット。`~/.zprofile` で `~/.cargo/env` を読む）
+
+一度 VM の中でビルドしておくと、pnpm と cargo のキャッシュが残り、次回から複製でのビルドが速くなります（約 3 分）。公式が Node の版を上げたら、ビルド用 VM の Node も合わせます。
 
 配布する dmg は署名していないため、アプリ内の自動更新は無効にしてあります（Squirrel.Mac は署名のないアプリを更新できない）。利用者は Releases から新しい dmg を入れ直します。
 
