@@ -2,7 +2,13 @@
 
 公式 [pingdotgg/t3code](https://github.com/pingdotgg/t3code) の UI を日本語にした fork です。
 元のコードは変更しません。`plugin.ts` がビルド時に `ja.json`（英語 → 日本語）で UI 文言を置き換えます。
-公式との差分は、このディレクトリ、`apps/web/vite.config.ts` の登録 2 行、`CLAUDE.md` の 1 行だけです。
+公式との差分は、このディレクトリ、`apps/web/vite.config.ts` の登録 2 行、`CLAUDE.md` の 1 行、
+だけです。アプリ名「T3 Code JA」とバンドル ID `com.t3tools.t3code.ja` は、`release.sh` がビルド直前に
+VM 内のコピーだけ書き換えます（`apps/desktop/package.json` の `productName` と `scripts/build-desktop-artifact.ts` の
+`DESKTOP_APP_ID`。公式側でその行が変わったらビルドが止まるので、`release.sh` の置き換え元を合わせる）。
+
+T3 Code JA は公式版と同じ設定フォルダ（`~/Library/Application Support/t3code-v2`）と T3 home（`~/.t3`）を使うので、
+設定・プロジェクト・スレッドを共有します。同時には起動できません（後から開いた方はすぐ終了し、先に開いていた方が前に出ます）。
 
 ## 公式リリースへの追従
 

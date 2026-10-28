@@ -33,6 +33,13 @@ vp install
 node apps/web/vite/ja/translate.check.ts
 missing="$(node apps/web/vite/ja/extract.ts)"
 [[ "$missing" == "[]" ]] || echo "warning: untranslated UI text ships in English: $missing" >&2
+# Rename the app so it installs beside the official one; fail if upstream moved these lines.
+rebrand() {
+  grep -qF "$2" "$1" || { echo "rebrand: $2 not found in $1" >&2; exit 1; }
+  FROM="$2" TO="$3" perl -pi -e "s/\\Q\$ENV{FROM}\\E/\$ENV{TO}/" "$1"
+}
+rebrand apps/desktop/package.json "\"productName\": \"T3 Code (Beta)\"" "\"productName\": \"T3 Code JA\""
+rebrand scripts/build-desktop-artifact.ts "DESKTOP_APP_ID = \"com.t3tools.t3code\";" "DESKTOP_APP_ID = \"com.t3tools.t3code.ja\";"
 node scripts/update-release-package-versions.ts "'"$VERSION"'"
 node scripts/build-desktop-artifact.ts --platform mac --target dmg --arch arm64 \
   --build-version "'"$VERSION"'" --output-dir "$HOME/out"'
@@ -41,13 +48,14 @@ node scripts/build-desktop-artifact.ts --platform mac --target dmg --arch arm64 
   --copy-in "$work/src.tgz:src.tgz" --copy-out "out:$work/out" \
   -- /bin/zsh -lc "$build"
 
-dmg="$(ls "$work"/out/*.dmg)"
+dmg="$work/T3-Code-JA-$VERSION-arm64.dmg"
+mv "$(ls "$work"/out/*.dmg)" "$dmg"
 if [[ -n "${DRY_RUN:-}" ]]; then
   mkdir -p "release-$TAG" && cp "$dmg" "release-$TAG/"
   echo "Built release-$TAG/$(basename "$dmg") (not published)"
   exit 0
 fi
-notes="公式 [v$VERSION](https://github.com/pingdotgg/t3code/releases/tag/v$VERSION) の日本語版です。署名していないため、初回は Finder でアプリを右クリックして「開く」を選んでください。アプリ内の自動更新は使えないので、新しい版はこのページから dmg をダウンロードしてください。"
+notes="公式 [v$VERSION](https://github.com/pingdotgg/t3code/releases/tag/v$VERSION) の日本語版「T3 Code JA」です。公式版と設定・プロジェクト・スレッドを共有します（同時には起動できないので、切り替えるときはもう片方を終了してください）。署名していないため、初回は Finder でアプリを右クリックして「開く」を選んでください。アプリ内の自動更新は使えないので、新しい版はこのページから dmg をダウンロードしてください。"
 gh release create "$TAG" "$dmg" -R "$REPO" --verify-tag \
-  --title "T3 Code $VERSION 日本語版" --notes "$notes" --latest
+  --title "T3 Code JA $VERSION" --notes "$notes" --latest
 echo "Released $TAG"
