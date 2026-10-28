@@ -319,7 +319,7 @@ interface TraitsMenuContentProps {
   planModeEnabled: boolean;
   triggerClassName?: string;
   isComposerOwned?: boolean;
-  /** Composer chips draw effort as bars unless the user picked the word. */
+  /** Composer chips name the effort level unless the user picked bars. */
   effortDisplay?: EffortDisplay;
   /** Extra section shown below the traits in the picker popup (Permissions). */
   extraMenuContent?: ReactNode;
@@ -511,12 +511,12 @@ export const TraitsMenuContent = memo(function TraitsMenuContentImpl({
   );
 });
 
-/** One bolt for Fast; Ultrafast stacks a second behind it, outlined in the surface color. */
+/** One bolt for Fast. Ultrafast adds an outlined echo behind it, cut away by the surface color. */
 function FastBolt(props: { ultra: boolean }) {
   if (!props.ultra) return <ZapIcon aria-hidden="true" className="size-3 shrink-0 fill-current" />;
   return (
-    <span aria-hidden="true" className="relative h-3 w-3.75 shrink-0">
-      <ZapIcon className="absolute top-0 left-0.75 size-3 fill-current" />
+    <span aria-hidden="true" className="relative h-3 w-4 shrink-0">
+      <ZapIcon className="absolute top-0 left-1 size-3" />
       <ZapIcon
         strokeWidth={4}
         className="absolute top-0 left-0 size-3 fill-current stroke-(--chat-composer-glass-surface) [paint-order:stroke]"
@@ -538,7 +538,7 @@ export const TraitsPicker = memo(function TraitsPicker({
   planModeEnabled,
   triggerClassName,
   isComposerOwned,
-  effortDisplay = "bars",
+  effortDisplay = "label",
   extraMenuContent,
   extraMenuOwnsModeShortcut,
   extraMenuHint,

@@ -78,8 +78,8 @@ const CHAT_WIDTH_LABELS: Record<ChatWidth, string> = {
 };
 
 const EFFORT_DISPLAY_LABELS: Record<EffortDisplay, string> = {
-  bars: "Bars",
   label: "Word",
+  bars: "Bars",
 };
 
 export function AppearanceSettingsPanel() {
@@ -275,7 +275,7 @@ export function AppearanceSettingsPanel() {
         />
         <SettingsRow
           {...searchableSetting("effort-display")}
-          description="Show reasoning effort in the composer as bars, or as its name, such as High."
+          description="Show reasoning effort in the composer as its name, such as High, or as bars."
           resetAction={
             settings.effortDisplay !== DEFAULT_UNIFIED_SETTINGS.effortDisplay ? (
               <SettingResetButton
@@ -299,8 +299,8 @@ export function AppearanceSettingsPanel() {
                   <SelectValue>{EFFORT_DISPLAY_LABELS[settings.effortDisplay]}</SelectValue>
                 </SelectTrigger>
                 <SelectPopup align="end" alignItemWithTrigger={false}>
-                  <SelectItem value="bars">Bars (default)</SelectItem>
-                  <SelectItem value="label">Word</SelectItem>
+                  <SelectItem value="label">Word (default)</SelectItem>
+                  <SelectItem value="bars">Bars</SelectItem>
                 </SelectPopup>
               </Select>
             </div>
