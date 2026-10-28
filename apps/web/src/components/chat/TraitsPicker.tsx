@@ -646,8 +646,9 @@ export const TraitsPicker = memo(function TraitsPicker({
                       ? "min-w-0 max-w-40 shrink justify-start overflow-hidden whitespace-nowrap sm:max-w-48"
                       : "shrink-0 whitespace-nowrap",
                     triggerClassName,
-                    // A word reads on from the model name, "Opus 5.5 High", at a normal word space.
-                    effortWord !== null && "ps-0",
+                    // A word reads on from the model name, "Opus 5.5 High", at the same space as
+                    // inside the name: this cancels the model chip's end padding and the row gap.
+                    effortWord !== null && "-ms-1 ps-0",
                   )}
                 />
               }
@@ -656,9 +657,6 @@ export const TraitsPicker = memo(function TraitsPicker({
         >
           {effortGlyph ? (
             <span className="flex items-center gap-1.5">
-              {speedLabel === "Fast" || speedLabel === "Ultrafast" ? (
-                <FastBolt ultra={speedLabel === "Ultrafast"} />
-              ) : null}
               {effortWord === null ? (
                 <EffortGlyph count={effortGlyph.count} filled={effortGlyph.filled} size={size} />
               ) : null}
@@ -679,6 +677,9 @@ export const TraitsPicker = memo(function TraitsPicker({
                   {triggerLabel}
                 </span>
               )}
+              {speedLabel === "Fast" || speedLabel === "Ultrafast" ? (
+                <FastBolt ultra={speedLabel === "Ultrafast"} />
+              ) : null}
               {otherLabels.length > 0 ? (
                 <span
                   aria-hidden="true"
