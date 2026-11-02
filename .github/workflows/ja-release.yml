@@ -1,6 +1,6 @@
 # Japanese fork release: builds the unsigned macOS arm64 app "T3 Code JA" and publishes it as `vX.Y.Z-ja`.
-# A push to `ja` releases the newest upstream stable tag it contains, once; the release creates the tag,
-# because the scheduled cloud sync can push branches but not tags.
+# A push to `ja` (or a manual run on it without a tag) releases the newest upstream stable tag it contains,
+# once; the release creates the tag, because the scheduled cloud sync can push branches but not tags.
 # Mirrors apps/web/vite/ja/release.sh (which stays as the local fallback on a Mac).
 # Squirrel.Mac cannot apply updates to unsigned apps, so the build ships without an update feed.
 name: Release (ja)
@@ -14,8 +14,8 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing vX.Y.Z-ja tag to rebuild"
-        required: true
+        description: "Existing vX.Y.Z-ja tag to rebuild (empty: release the branch like a push)"
+        required: false
         type: string
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
       ref: ${{ steps.tag.outputs.ref }}
     steps:
       - name: Checkout
-        if: github.ref_type == 'branch' && github.event_name == 'push'
+        if: github.ref_type == 'branch'
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
@@ -40,7 +40,7 @@ jobs:
         env:
           INPUT_TAG: ${{ inputs.tag }}
         run: |
-          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+          if [[ -n "$INPUT_TAG" ]]; then
             echo "tag=$INPUT_TAG" >> "$GITHUB_OUTPUT"; echo "ref=$INPUT_TAG" >> "$GITHUB_OUTPUT"; exit 0
           fi
           if [[ "$GITHUB_REF_TYPE" == tag ]]; then
