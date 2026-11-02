@@ -55,7 +55,7 @@ if [[ -n "${DRY_RUN:-}" ]]; then
   echo "Built release-$TAG/$(basename "$dmg") (not published)"
   exit 0
 fi
-notes="公式 [v$VERSION](https://github.com/pingdotgg/t3code/releases/tag/v$VERSION) の日本語版「T3 Code JA」です。公式版と設定・プロジェクト・スレッドを共有します（同時には起動できないので、切り替えるときはもう片方を終了してください）。署名していないため、初回は Finder でアプリを右クリックして「開く」を選んでください。アプリ内の自動更新は使えないので、新しい版はこのページから dmg をダウンロードしてください。"
+notes="公式 [v$VERSION](https://github.com/pingdotgg/t3code/releases/tag/v$VERSION) の日本語版「T3 Code JA」です。公式版と設定・プロジェクト・スレッドを共有します（同時には起動できないので、切り替えるときはもう片方を終了してください）。署名していないため、dmg からアプリを「アプリケーション」フォルダーに入れたあと、ターミナルで \`xattr -dr com.apple.quarantine \"/Applications/T3 Code JA.app\"\` を実行してから開いてください（入れ直すたびに必要です。実行しないと「壊れているため開けません」と表示されます）。アプリ内の自動更新は使えないので、新しい版はこのページから dmg をダウンロードしてください。"
 gh release create "$TAG" "$dmg" -R "$REPO" --verify-tag \
   --title "T3 Code JA $VERSION" --notes "$notes" --latest
 echo "Released $TAG"
