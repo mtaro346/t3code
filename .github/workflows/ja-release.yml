@@ -1,10 +1,14 @@
-# Japanese fork release: a `vX.Y.Z-ja` tag builds the unsigned macOS arm64 app "T3 Code JA" and publishes it.
+# Japanese fork release: builds the unsigned macOS arm64 app "T3 Code JA" and publishes it as `vX.Y.Z-ja`.
+# A push to `ja` releases the newest upstream stable tag it contains, once; the release creates the tag,
+# because the scheduled cloud sync can push branches but not tags.
 # Mirrors apps/web/vite/ja/release.sh (which stays as the local fallback on a Mac).
 # Squirrel.Mac cannot apply updates to unsigned apps, so the build ships without an update feed.
 name: Release (ja)
 
 on:
   push:
+    branches:
+      - ja
     tags:
       - "v*.*.*-ja"
   workflow_dispatch:
@@ -17,22 +21,61 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: ja-release-${{ inputs.tag || github.ref_name }}
-  cancel-in-progress: false
-
 jobs:
-  release:
+  prepare:
     if: github.repository != 'pingdotgg/t3code'
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      ref: ${{ steps.tag.outputs.ref }}
+    steps:
+      - name: Checkout
+        if: github.ref_type == 'branch' && github.event_name == 'push'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag
+        id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+            echo "tag=$INPUT_TAG" >> "$GITHUB_OUTPUT"; echo "ref=$INPUT_TAG" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then
+            echo "tag=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"; echo "ref=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          # Peeled (^{}) lines carry the commit of annotated tags and override the tag object's sha.
+          upstream="$(git ls-remote --tags https://github.com/pingdotgg/t3code.git |
+            awk '$2 ~ /^refs\/tags\/v[0-9]+\.[0-9]+\.[0-9]+(\^\{\})?$/ { n=$2; sub(/^refs\/tags\//,"",n); p=sub(/\^\{\}$/,"",n); if (p || !(n in sha)) sha[n]=$1 } END { for (n in sha) print n, sha[n] }' |
+            sort -rV)"
+          version=""
+          while read -r name sha; do
+            if git merge-base --is-ancestor "$sha" HEAD 2>/dev/null; then version="$name"; break; fi
+          done <<< "$upstream"
+          [[ -n "$version" ]] || { echo "::error::ja contains no upstream stable tag"; exit 1; }
+          if git ls-remote --exit-code --tags origin "refs/tags/$version-ja" >/dev/null; then
+            echo "$version-ja is already released"; exit 0
+          fi
+          echo "tag=$version-ja" >> "$GITHUB_OUTPUT"; echo "ref=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: prepare
+    if: needs.prepare.outputs.tag != ''
     runs-on: macos-latest
     timeout-minutes: 120
+    concurrency:
+      group: ja-release-${{ needs.prepare.outputs.tag }}
+      cancel-in-progress: false
     env:
-      TAG: ${{ inputs.tag || github.ref_name }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      REF: ${{ needs.prepare.outputs.ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ env.TAG }}
+          ref: ${{ env.REF }}
 
       - name: Resolve version
         id: version
@@ -100,5 +143,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$dmg" --clobber
           else
-            gh release create "$TAG" "$dmg" --verify-tag --title "T3 Code JA $VERSION" --notes "$notes" --latest
+            gh release create "$TAG" "$dmg" --target "$(git rev-parse HEAD)" --title "T3 Code JA $VERSION" --notes "$notes" --latest
           fi

@@ -19,8 +19,8 @@ T3 Code JA は公式版と同じ設定フォルダ（`~/Library/Application Supp
 2. コンフリクトは `vite.config.ts` の `japanesePlugin()` 登録だけのはず。公式側を採用してから登録を戻す
 3. `node apps/web/vite/ja/extract.ts` で未訳を出し、下のルールで `ja.json` に追加する（キー順を保つ）
 4. `node apps/web/vite/ja/translate.check.ts` と `vp run typecheck`（apps/web）と `vp build`（apps/web）を通す
-5. `git push origin ja` → `git tag -a vX.Y.Z-ja && git push origin vX.Y.Z-ja`
-6. タグの push で GitHub Actions の `Release (ja)`（`.github/workflows/ja-release.yml`）が macOS ランナーで arm64 の dmg をビルドし、fork の Releases に公開する。作り直すときは Actions 画面からタグを指定して手動実行する
+5. `git push origin ja`
+6. `ja` の push で GitHub Actions の `Release (ja)`（`.github/workflows/ja-release.yml`）が、`ja` に含まれる最新の公式 stable タグの `vX.Y.Z-ja` がまだ無ければ、macOS ランナーで arm64 の dmg をビルドし、fork の Releases に公開する（タグもこのとき作られる）。`vX.Y.Z-ja` タグを手で push しても動く。作り直すときは Actions 画面からタグを指定して手動実行する
 
 Actions が使えないときは、Mac で `apps/web/vite/ja/release.sh vX.Y.Z-ja` を実行する。VMPal のビルド用 VM の使い捨てクローンで arm64 の dmg をビルドし、fork の Releases に公開する。`DRY_RUN=1` を付けるとビルドだけ行う
 
