@@ -1,8 +1,10 @@
-# Japanese fork release: builds the unsigned macOS arm64 app "T3 Code JA" and publishes it as `vX.Y.Z-ja`.
+# Japanese fork release: builds the unsigned "T3 Code JA" app (macOS arm64 dmg, Windows x64 installer)
+# and publishes both as `vX.Y.Z-ja`.
 # A push to `ja` (or a manual run on it without a tag) releases the newest upstream stable tag it contains,
 # once; the release creates the tag, because the scheduled cloud sync can push branches but not tags.
-# Mirrors apps/web/vite/ja/release.sh (which stays as the local fallback on a Mac).
-# Squirrel.Mac cannot apply updates to unsigned apps, so the build ships without an update feed.
+# The macOS build mirrors apps/web/vite/ja/release.sh (which stays as the local fallback on a Mac).
+# Squirrel.Mac cannot apply updates to unsigned apps, so both builds ship without an update feed.
+# Windows ships without the bundled WSL runtime, which needs a separate Linux CLI archive build.
 name: Release (ja)
 
 on:
@@ -60,14 +62,33 @@ jobs:
           fi
           echo "tag=$version-ja" >> "$GITHUB_OUTPUT"; echo "ref=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
-  release:
+  build:
     needs: prepare
     if: needs.prepare.outputs.tag != ''
-    runs-on: macos-latest
+    name: Build ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
-    concurrency:
-      group: ja-release-${{ needs.prepare.outputs.tag }}
-      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macOS arm64
+            runner: macos-latest
+            platform: mac
+            target: dmg
+            arch: arm64
+            ext: dmg
+            rust_target: aarch64-apple-darwin
+          - label: Windows x64
+            runner: windows-latest
+            platform: win
+            target: nsis
+            arch: x64
+            ext: exe
+            rust_target: x86_64-pc-windows-msvc
+    defaults:
+      run:
+        shell: bash
     env:
       TAG: ${{ needs.prepare.outputs.tag }}
       REF: ${{ needs.prepare.outputs.ref }}
@@ -94,13 +115,14 @@ jobs:
 
       - name: Setup Rust
         run: |
-          rustup toolchain install stable --profile minimal --target aarch64-apple-darwin
+          rustup toolchain install stable --profile minimal --target "${{ matrix.rust_target }}"
           rustup default stable
 
       - name: Install dependencies
         run: vp install
 
       - name: Check translations
+        if: matrix.platform == 'mac'
         run: |
           node apps/web/vite/ja/translate.check.ts
           missing="$(node apps/web/vite/ja/extract.ts)"
@@ -121,28 +143,79 @@ jobs:
       - name: Align package versions
         run: node scripts/update-release-package-versions.ts "${{ steps.version.outputs.version }}"
 
-      - name: Build macOS app
+      - name: Build desktop app
         run: |
           env -u GITHUB_REPOSITORY -u T3CODE_DESKTOP_UPDATE_REPOSITORY \
           node scripts/build-desktop-artifact.ts \
-            --platform mac --target dmg --arch arm64 \
+            --platform "${{ matrix.platform }}" --target "${{ matrix.target }}" --arch "${{ matrix.arch }}" \
             --build-version "${{ steps.version.outputs.version }}" \
             --output-dir release
+
+      - name: Collect artifact
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          shopt -s nullglob
+          files=(release/T3-Code-*.${{ matrix.ext }})
+          (( ${#files[@]} == 1 )) || { echo "Expected one .${{ matrix.ext }}, found ${#files[@]}" >&2; ls -la release; exit 1; }
+          mkdir -p out
+          mv "${files[0]}" "out/T3-Code-JA-$VERSION-${{ matrix.arch }}.${{ matrix.ext }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ja-${{ matrix.platform }}
+          path: out/*
+          if-no-files-found: error
+
+  publish:
+    needs: [prepare, build]
+    if: needs.prepare.outputs.tag != ''
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ja-release-${{ needs.prepare.outputs.tag }}
+      cancel-in-progress: false
+    env:
+      TAG: ${{ needs.prepare.outputs.tag }}
+      REF: ${{ needs.prepare.outputs.ref }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.REF }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: ja-*
+          merge-multiple: true
+          path: out
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          shopt -s nullglob
-          dmgs=(release/*.dmg)
-          (( ${#dmgs[@]} == 1 )) || { echo "Expected one dmg, found ${#dmgs[@]}" >&2; ls -la release; exit 1; }
-          dmg="release/T3-Code-JA-$VERSION-arm64.dmg"
-          [[ "${dmgs[0]}" == "$dmg" ]] || mv "${dmgs[0]}" "$dmg"
-          notes="公式 [v$VERSION](https://github.com/pingdotgg/t3code/releases/tag/v$VERSION) の日本語版「T3 Code JA」です。公式版と設定・プロジェクト・スレッドを共有します（同時には起動できないので、切り替えるときはもう片方を終了してください）。署名していないため、dmg からアプリを「アプリケーション」フォルダーに入れたあと、ターミナルで \`xattr -dr com.apple.quarantine \"/Applications/T3 Code JA.app\"\` を実行してから開いてください（入れ直すたびに必要です。実行しないと「壊れているため開けません」と表示されます）。アプリ内の自動更新は使えないので、新しい版はこのページから dmg をダウンロードしてください。"
+          version="${TAG#v}"
+          version="${version%-ja}"
+          dmg="T3-Code-JA-$version-arm64.dmg"
+          exe="T3-Code-JA-$version-x64.exe"
+          for f in "$dmg" "$exe"; do
+            [[ -f "out/$f" ]] || { echo "Missing $f" >&2; ls -la out; exit 1; }
+          done
+          cat > notes.md <<EOF
+          公式 [v$version](https://github.com/pingdotgg/t3code/releases/tag/v$version) の日本語版「T3 Code JA」です。公式版と設定・プロジェクト・スレッドを共有します（同時には起動できないので、切り替えるときはもう片方を終了してください）。署名していないため、アプリ内の自動更新は使えません。新しい版はこのページからダウンロードしてください。
+
+          ### macOS（Apple シリコン）: \`$dmg\`
+
+          dmg からアプリを「アプリケーション」フォルダーに入れたあと、ターミナルで \`xattr -dr com.apple.quarantine "/Applications/T3 Code JA.app"\` を実行してから開いてください（入れ直すたびに必要です。実行しないと「壊れているため開けません」と表示されます）。
+
+          ### Windows（x64）: \`$exe\`
+
+          ダウンロードした exe を実行してインストールします。ブラウザーがダウンロードを警告したら「保持」を選んでください。署名していないため、実行すると「Windows によって PC が保護されました」と表示されます。「詳細情報」を押してから「実行」を押してください（新しい版を入れるたびに必要です）。インストールが終わると、スタートメニューから「T3 Code JA」を開けます。
+          EOF
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$dmg" --clobber
-            gh release edit "$TAG" --notes "$notes"
+            gh release upload "$TAG" "out/$dmg" "out/$exe" --clobber
+            gh release edit "$TAG" --notes-file notes.md
           else
-            gh release create "$TAG" "$dmg" --target "$(git rev-parse HEAD)" --title "T3 Code JA $VERSION" --notes "$notes" --latest
+            gh release create "$TAG" "out/$dmg" "out/$exe" --target "$(git rev-parse HEAD)" --title "T3 Code JA $version" --notes-file notes.md --latest
           fi

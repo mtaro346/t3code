@@ -20,9 +20,9 @@ T3 Code JA は公式版と同じ設定フォルダ（`~/Library/Application Supp
 3. `node apps/web/vite/ja/extract.ts` で未訳を出し、下のルールで `ja.json` に追加する（キー順を保つ）
 4. `node apps/web/vite/ja/translate.check.ts` と `vp run typecheck`（apps/web）と `vp build`（apps/web）を通す
 5. `git push origin ja`
-6. `ja` の push で GitHub Actions の `Release (ja)`（`.github/workflows/ja-release.yml`）が、`ja` に含まれる最新の公式 stable タグの `vX.Y.Z-ja` がまだ無ければ、macOS ランナーで arm64 の dmg をビルドし、fork の Releases に公開する（タグもこのとき作られる）。`vX.Y.Z-ja` タグを手で push しても、Actions 画面からタグを空のまま `ja` で手動実行しても動く。作り直すときはタグを指定して手動実行する
+6. `ja` の push で GitHub Actions の `Release (ja)`（`.github/workflows/ja-release.yml`）が、`ja` に含まれる最新の公式 stable タグの `vX.Y.Z-ja` がまだ無ければ、macOS（arm64 の dmg）と Windows（x64 のインストーラー）をビルドし、fork の Releases に公開する（タグもこのとき作られる）。`vX.Y.Z-ja` タグを手で push しても、Actions 画面からタグを空のまま `ja` で手動実行しても動く。作り直すときはタグを指定して手動実行する
 
-Actions が使えないときは、Mac で `apps/web/vite/ja/release.sh vX.Y.Z-ja` を実行する。VMPal のビルド用 VM の使い捨てクローンで arm64 の dmg をビルドし、fork の Releases に公開する。`DRY_RUN=1` を付けるとビルドだけ行う
+Actions が使えないときは、Mac で `apps/web/vite/ja/release.sh vX.Y.Z-ja` を実行する（macOS 版だけ）。VMPal のビルド用 VM の使い捨てクローンで arm64 の dmg をビルドし、fork の Releases に公開する。`DRY_RUN=1` を付けるとビルドだけ行う
 
 ## ビルド用 VM（release.sh を使うとき）
 
@@ -35,7 +35,7 @@ Actions が使えないときは、Mac で `apps/web/vite/ja/release.sh vX.Y.Z-j
 
 一度 VM の中でビルドしておくと、pnpm と cargo のキャッシュが残り、次回から複製でのビルドが速くなります（約 3 分）。公式が Node の版を上げたら、ビルド用 VM の Node も合わせます。
 
-配布する dmg は署名していないため、アプリ内の自動更新は無効にしてあります（Squirrel.Mac は署名のないアプリを更新できない）。利用者は Releases から新しい dmg を入れ直します。
+配布する dmg と exe は署名していないため、アプリ内の自動更新は無効にしてあります（Squirrel.Mac は署名のないアプリを更新できない）。利用者は Releases から新しい版を入れ直します。Windows 版には WSL 用のランタイムを同梱していません（公式は別途ビルドした Linux 版 CLI を同梱する）。
 
 `extract.ts` が `[]` を返せば翻訳は完了です。英語のまま残す文言は、値をキーと同じ文字列にします（再抽出されなくなる）。
 
