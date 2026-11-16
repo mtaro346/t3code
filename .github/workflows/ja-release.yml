@@ -131,6 +131,11 @@ jobs:
           cargo xwin build --locked --release --manifest-path native/resource-monitor/Cargo.toml --target "${{ matrix.rust_target }}"
           echo "T3CODE_DESKTOP_REUSE_RESOURCE_MONITOR=true" >> "$GITHUB_ENV"
 
+      # The full desktop build on a Linux host compiles the Linux browser secret helper.
+      - name: Install browser secret helper build libraries
+        if: matrix.platform == 'win'
+        run: sudo apt-get update && sudo apt-get install -y libsecret-1-dev pkg-config
+
       - name: Install dependencies
         run: vp install
 
