@@ -79,8 +79,9 @@ jobs:
             arch: arm64
             ext: dmg
             rust_target: aarch64-apple-darwin
+          # Like upstream, Windows packages on Linux: a native Windows build trips the payload file limit.
           - label: Windows x64
-            runner: windows-latest
+            runner: ubuntu-latest
             platform: win
             target: nsis
             arch: x64
@@ -117,6 +118,18 @@ jobs:
         run: |
           rustup toolchain install stable --profile minimal --target "${{ matrix.rust_target }}"
           rustup default stable
+
+      - name: Install cargo-xwin
+        if: matrix.platform == 'win'
+        uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2
+        with:
+          tool: cargo-xwin@0.23.1
+
+      - name: Build Windows resource monitor
+        if: matrix.platform == 'win'
+        run: |
+          cargo xwin build --locked --release --manifest-path native/resource-monitor/Cargo.toml --target "${{ matrix.rust_target }}"
+          echo "T3CODE_DESKTOP_REUSE_RESOURCE_MONITOR=true" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: vp install
